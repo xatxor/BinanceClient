@@ -25,19 +25,29 @@ namespace BinanceClient
                 foreach (var symbol in client.GetExchangeInfo().Data.Symbols)
                     SymbolsComboBox.Items.Add(symbol.Name);
             }
+            
+            SymbolsComboBox.SelectedItem = "ETHBTC";        // выберем сразу хоть что-то чтобы не рухнуло если нажать выгрузку    
+            StartTime.Value = DateTime.UtcNow.AddHours(-1);   // выберем сразу последний час по UTC
+            EndTime.Value = DateTime.UtcNow;              // там записи имеют время в UTC чтобы весь мир пользовался
         }
 
 
         private void UnloadButton_Click(object sender, EventArgs e)
         {
-            using (var client = new Binance.Net.BinanceClient())
+            try
             {
-                unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), ref trades, ref rates, StartTime.Value, EndTime.Value);
-            }
+                using (var client = new Binance.Net.BinanceClient())
+                {
+                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), ref trades, ref rates, StartTime.Value, EndTime.Value);
+                }
 
-            foreach (var item in rates)
+                foreach (var item in rates)
+                {
+                    UnloadedInfoTextBox.Text += item.ToString().Trim(new char[] { '(', ')' }) + Environment.NewLine;
+                }
+            }catch(Exception ex)
             {
-                UnloadedInfoTextBox.Text += item.ToString().Trim(new char[]{'(', ')'}) + Environment.NewLine;
+                MessageBox.Show($"ОШИБКА: {ex.Message}");
             }
         }
 
