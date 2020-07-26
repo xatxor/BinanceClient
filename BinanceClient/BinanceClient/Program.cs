@@ -30,6 +30,8 @@ namespace BinanceClient
                 LogWriters = new List<TextWriter> { Console.Out }
             });
 
+            Repository repos = new Repository();
+            repos.AddBinanceInfo(new BinanceInfo(DateTime.Now, 1, 1));
         }
     }
 }

@@ -14,7 +14,8 @@ namespace BinanceClient
     public partial class Form1 : Form
     {
         private Unloader unloader = new Unloader();
-        public List<BinanceInfo> info = new List<BinanceInfo>();
+        private Repository repos = new Repository();
+        private OutPuter outputer = new OutPuter();
         public Form1()
         {
             InitializeComponent();
@@ -41,14 +42,17 @@ namespace BinanceClient
             {
                 using (var client = new Binance.Net.BinanceClient())
                 {
-                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), ref info, StartTime.Value, EndTime.Value);
+                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), StartTime.Value, EndTime.Value);
                 }
 
-                foreach (var item in info)
+                var info1 = repos.GetElementByTime(StartTime.Value);
+                var info2 = repos.GetElementByTime(EndTime.Value);
+                foreach (var item in repos.GetRangeOfElementsFromId(info1.Id, info2.Id))
                 {
-                    UnloadedInfoTextBox.Text += item.Time.ToString() + " " + item.TradeQuantity.ToString() + " " + item.RatePrice.ToString() + Environment.NewLine;
+                    outputer.OutPutBinanceInfoToTextbox(item, UnloadedInfoTextBox);
                 }
-            }catch(Exception ex)
+            }
+            catch(Exception ex)
             {
                 MessageBox.Show($"ОШИБКА: {ex.Message}");
             }
@@ -88,24 +92,13 @@ namespace BinanceClient
         {
             using (Binance.Net.BinanceClient client = new Binance.Net.BinanceClient())
             {
-                int startvalue;
-                DateTime start;
-                if (info.Count == 0)
-                {
-                    startvalue = 0;
-                    start = StartTime.Value;
-                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), ref info, start, start.AddMinutes(5));
-                }
-                else
-                {
-                    startvalue = info.Count - 1;
-                    start = info[info.Count - 1].Time;
-                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), ref info,
-                        start.AddMilliseconds(1), start.AddMinutes(5));
-                }
-
-                for (int i = startvalue + 1; i < info.Count - 1; i++)
-                    UnloadedInfoTextBox.Text += info[i].Time.ToString() + " " + info[i].TradeQuantity.ToString() + " " + info[i].RatePrice.ToString() + Environment.NewLine;
+                var info = repos.GetLastElement();
+                DateTime start = info.Time;
+                int id = info.Id;
+                unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start.AddMilliseconds(1), start.AddMinutes(Convert.ToInt32(TimeInterval.Text)));
+                IEnumerable<BinanceInfo> ieinfo = repos.GetRangeOfElementsFromId(id + 1);
+                foreach (var item in ieinfo)
+                    outputer.OutPutBinanceInfoToTextbox(item, UnloadedInfoTextBox);
             }
         }
     }

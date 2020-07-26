@@ -8,6 +8,7 @@ namespace BinanceClient
 {
     public class BinanceInfo
     {
+        public int Id { get; set; }
         public DateTime Time { get; set; }
         public decimal TradeQuantity { get; set; }
         public decimal RatePrice { get; set; }
