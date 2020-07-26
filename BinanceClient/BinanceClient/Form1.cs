@@ -14,8 +14,7 @@ namespace BinanceClient
     public partial class Form1 : Form
     {
         private Unloader unloader = new Unloader();
-        List<Tuple<DateTime, decimal>> trades = new List<Tuple<DateTime, decimal>>();
-        List<Tuple<DateTime, decimal>> rates = new List<Tuple<DateTime, decimal>>();
+        public List<BinanceInfo> info = new List<BinanceInfo>();
         public Form1()
         {
             InitializeComponent();
@@ -38,12 +37,12 @@ namespace BinanceClient
             {
                 using (var client = new Binance.Net.BinanceClient())
                 {
-                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), ref trades, ref rates, StartTime.Value, EndTime.Value);
+                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), ref info, StartTime.Value, EndTime.Value);
                 }
 
-                foreach (var item in rates)
+                foreach (var item in info)
                 {
-                    UnloadedInfoTextBox.Text += item.ToString().Trim(new char[] { '(', ')' }) + Environment.NewLine;
+                    UnloadedInfoTextBox.Text += item.Time.ToString() + " " + item.TradeQuantity.ToString() + " " + item.RatePrice.ToString() + Environment.NewLine;
                 }
             }catch(Exception ex)
             {
