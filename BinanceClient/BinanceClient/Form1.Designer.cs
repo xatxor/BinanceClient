@@ -45,6 +45,8 @@
             this.EndTime = new System.Windows.Forms.DateTimePicker();
             this.AutoUnloadButton = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.label6 = new System.Windows.Forms.Label();
+            this.TimeInterval = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource1)).BeginInit();
             this.SuspendLayout();
@@ -53,7 +55,7 @@
             // 
             this.AutoUnloadCheckBox.AutoSize = true;
             this.AutoUnloadCheckBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.AutoUnloadCheckBox.Location = new System.Drawing.Point(28, 276);
+            this.AutoUnloadCheckBox.Location = new System.Drawing.Point(28, 240);
             this.AutoUnloadCheckBox.Name = "AutoUnloadCheckBox";
             this.AutoUnloadCheckBox.Size = new System.Drawing.Size(288, 24);
             this.AutoUnloadCheckBox.TabIndex = 0;
@@ -85,7 +87,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.label3.Location = new System.Drawing.Point(24, 313);
+            this.label3.Location = new System.Drawing.Point(24, 323);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(222, 20);
             this.label3.TabIndex = 7;
@@ -93,16 +95,19 @@
             // 
             // TimeoutTextBox
             // 
-            this.TimeoutTextBox.Location = new System.Drawing.Point(28, 336);
+            this.TimeoutTextBox.Location = new System.Drawing.Point(28, 346);
             this.TimeoutTextBox.Name = "TimeoutTextBox";
             this.TimeoutTextBox.Size = new System.Drawing.Size(239, 20);
             this.TimeoutTextBox.TabIndex = 8;
+            this.TimeoutTextBox.Text = "1";
             // 
             // UnloadedInfoTextBox
             // 
+            this.UnloadedInfoTextBox.BackColor = System.Drawing.SystemColors.Window;
             this.UnloadedInfoTextBox.Location = new System.Drawing.Point(347, 48);
             this.UnloadedInfoTextBox.Multiline = true;
             this.UnloadedInfoTextBox.Name = "UnloadedInfoTextBox";
+            this.UnloadedInfoTextBox.ReadOnly = true;
             this.UnloadedInfoTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.UnloadedInfoTextBox.Size = new System.Drawing.Size(324, 353);
             this.UnloadedInfoTextBox.TabIndex = 9;
@@ -120,7 +125,7 @@
             // UnloadButton
             // 
             this.UnloadButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.UnloadButton.Location = new System.Drawing.Point(28, 203);
+            this.UnloadButton.Location = new System.Drawing.Point(28, 192);
             this.UnloadButton.Name = "UnloadButton";
             this.UnloadButton.Size = new System.Drawing.Size(239, 29);
             this.UnloadButton.TabIndex = 11;
@@ -188,11 +193,31 @@
             // 
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.label6.Location = new System.Drawing.Point(24, 277);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(292, 20);
+            this.label6.TabIndex = 19;
+            this.label6.Text = "За раз выгружать данные за ... минут";
+            // 
+            // TimeInterval
+            // 
+            this.TimeInterval.Location = new System.Drawing.Point(28, 300);
+            this.TimeInterval.Name = "TimeInterval";
+            this.TimeInterval.Size = new System.Drawing.Size(239, 20);
+            this.TimeInterval.TabIndex = 20;
+            this.TimeInterval.Text = "5";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(715, 430);
+            this.Controls.Add(this.TimeInterval);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.AutoUnloadButton);
             this.Controls.Add(this.EndTime);
             this.Controls.Add(this.StartTime);
@@ -207,7 +232,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.AutoUnloadCheckBox);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "BinanceClient";
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource1)).EndInit();
             this.ResumeLayout(false);
@@ -233,6 +258,8 @@
         private System.Windows.Forms.DateTimePicker EndTime;
         private System.Windows.Forms.Button AutoUnloadButton;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox TimeInterval;
     }
 }
 

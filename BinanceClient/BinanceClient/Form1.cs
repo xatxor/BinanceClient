@@ -28,6 +28,10 @@ namespace BinanceClient
             SymbolsComboBox.SelectedItem = "ETHBTC";        // выберем сразу хоть что-то чтобы не рухнуло если нажать выгрузку    
             StartTime.Value = DateTime.UtcNow.AddHours(-1);   // выберем сразу последний час по UTC
             EndTime.Value = DateTime.UtcNow;              // там записи имеют время в UTC чтобы весь мир пользовался
+
+            TimeInterval.Enabled = false;
+            AutoUnloadButton.Enabled = false;
+            TimeoutTextBox.Enabled = false;
         }
 
 
@@ -52,9 +56,24 @@ namespace BinanceClient
 
         private void AutoUnloadCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (!AutoUnloadCheckBox.Checked)
+            if (AutoUnloadCheckBox.Checked)
+            {
+                StartTime.Enabled = false;
+                EndTime.Enabled = false;
+                UnloadButton.Enabled = false;
+                TimeInterval.Enabled = true;
+                AutoUnloadButton.Enabled = true;
+                TimeoutTextBox.Enabled = true;
+            }
+            else
             {
                 timer1.Stop();
+                StartTime.Enabled = true;
+                EndTime.Enabled = true;
+                UnloadButton.Enabled = true;
+                TimeInterval.Enabled = false;
+                AutoUnloadButton.Enabled = false;
+                TimeoutTextBox.Enabled = false;
             }
         }
 
