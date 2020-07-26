@@ -15,7 +15,7 @@ namespace BinanceClient
         public BinanceInfo(DateTime time, decimal tradeQuantity, decimal ratePrice)
         {
             Time = time;
-            TradeQuantity = tradeQuantity;
+            TradeQuantity = Math.Round(tradeQuantity, 2);
             RatePrice = ratePrice;
         }
     }

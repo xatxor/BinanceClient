@@ -52,7 +52,42 @@ namespace BinanceClient
 
         private void AutoUnloadCheckBox_CheckedChanged(object sender, EventArgs e)
         {
+            if (!AutoUnloadCheckBox.Checked)
+            {
+                timer1.Stop();
+            }
+        }
 
+        private void AutoUnloadButton_Click(object sender, EventArgs e)
+        {
+            //1 минута - 60000 миллисекунд
+            timer1.Interval = Convert.ToInt32(TimeoutTextBox.Text) * 1000;
+            timer1.Start();
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            using (Binance.Net.BinanceClient client = new Binance.Net.BinanceClient())
+            {
+                int startvalue;
+                DateTime start;
+                if (info.Count == 0)
+                {
+                    startvalue = 0;
+                    start = StartTime.Value;
+                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), ref info, start, start.AddMinutes(5));
+                }
+                else
+                {
+                    startvalue = info.Count - 1;
+                    start = info[info.Count - 1].Time;
+                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), ref info,
+                        start.AddMilliseconds(1), start.AddMinutes(5));
+                }
+
+                for (int i = startvalue + 1; i < info.Count - 1; i++)
+                    UnloadedInfoTextBox.Text += info[i].Time.ToString() + " " + info[i].TradeQuantity.ToString() + " " + info[i].RatePrice.ToString() + Environment.NewLine;
+            }
         }
     }
 }

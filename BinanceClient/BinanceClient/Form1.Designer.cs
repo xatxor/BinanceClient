@@ -44,6 +44,7 @@
             this.StartTime = new System.Windows.Forms.DateTimePicker();
             this.EndTime = new System.Windows.Forms.DateTimePicker();
             this.AutoUnloadButton = new System.Windows.Forms.Button();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource1)).BeginInit();
             this.SuspendLayout();
@@ -181,6 +182,11 @@
             this.AutoUnloadButton.TabIndex = 17;
             this.AutoUnloadButton.Text = "Начать автоматическую выгрузку";
             this.AutoUnloadButton.UseVisualStyleBackColor = true;
+            this.AutoUnloadButton.Click += new System.EventHandler(this.AutoUnloadButton_Click);
+            // 
+            // timer1
+            // 
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // Form1
             // 
@@ -226,6 +232,7 @@
         private System.Windows.Forms.DateTimePicker StartTime;
         private System.Windows.Forms.DateTimePicker EndTime;
         private System.Windows.Forms.Button AutoUnloadButton;
+        private System.Windows.Forms.Timer timer1;
     }
 }
 
