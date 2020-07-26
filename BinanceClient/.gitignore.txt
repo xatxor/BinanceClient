@@ -1,0 +1,5 @@
+.vs/*
+packages/*
+BinanceClient/bin/*
+BinanceClient/bin/Debug/*
+BinanceClient/obj/*
