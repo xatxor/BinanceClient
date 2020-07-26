@@ -80,7 +80,7 @@ namespace BinanceClient
         private void AutoUnloadButton_Click(object sender, EventArgs e)
         {
             //1 минута - 60000 миллисекунд
-            timer1.Interval = Convert.ToInt32(TimeoutTextBox.Text) * 1000;
+            timer1.Interval = Convert.ToInt32(TimeoutTextBox.Text) * 60000;
             timer1.Start();
         }
 
