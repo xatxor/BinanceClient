@@ -17,7 +17,7 @@ namespace BinanceClient
             if (aggTrades.Data != null)
                 foreach (var t in aggTrades.Data)
                 {
-                    repos.AddBinanceInfo(new BinanceInfo(t.TradeTime, t.Quantity, t.Price));
+                    repos.AddBinanceInfo(new BinanceInfo(t.TradeTime, symbol, t.Quantity, t.Price));
                 }
             else
                 throw new Exception(aggTrades.Error.Message);

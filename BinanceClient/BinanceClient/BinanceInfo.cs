@@ -10,10 +10,11 @@ namespace BinanceClient
     {
         public int Id { get; set; }
         public DateTime Time { get; set; }
+        public string Symbol { get; set; }
         public decimal TradeQuantity { get; set; }
         public decimal RatePrice { get; set; }
 
-        public BinanceInfo(DateTime time, decimal tradeQuantity, decimal ratePrice)
+        public BinanceInfo(DateTime time, string symbol, decimal tradeQuantity, decimal ratePrice)
         {
             Time = time;
             TradeQuantity = Math.Round(tradeQuantity, 2);
