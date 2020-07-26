@@ -30,9 +30,7 @@ namespace BinanceClient
             StartTime.Value = DateTime.UtcNow.AddHours(-1);   // выберем сразу последний час по UTC
             EndTime.Value = DateTime.UtcNow;              // там записи имеют время в UTC чтобы весь мир пользовался
 
-            TimeInterval.Enabled = false;
             AutoUnloadButton.Enabled = false;
-            TimeoutTextBox.Enabled = false;
         }
 
 
@@ -47,10 +45,16 @@ namespace BinanceClient
 
                 var info1 = repos.GetElementByTime(StartTime.Value);
                 var info2 = repos.GetElementByTime(EndTime.Value);
-                foreach (var item in repos.GetRangeOfElementsFromId(info1.Id, info2.Id))
+                List<BinanceInfo> ieinfo = repos.GetRangeOfElementsFromId(info1.Id, info2.Id).ToList();
+                if (ieinfo.Any())
                 {
-                    outputer.OutPutBinanceInfoToTextbox(item, UnloadedInfoTextBox);
+                    foreach (var item in ieinfo)
+                    {
+                        outputer.OutPutBinanceInfoToTextbox(item, UnloadedInfoTextBox);
+                    }
                 }
+                else
+                    MessageBox.Show("За этот период записей нет");
             }
             catch(Exception ex)
             {
@@ -60,24 +64,24 @@ namespace BinanceClient
 
         private void AutoUnloadCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (AutoUnloadCheckBox.Checked)
+            if (repos.IsHaveInfo())
             {
-                StartTime.Enabled = false;
-                EndTime.Enabled = false;
-                UnloadButton.Enabled = false;
-                TimeInterval.Enabled = true;
-                AutoUnloadButton.Enabled = true;
-                TimeoutTextBox.Enabled = true;
+                if (AutoUnloadCheckBox.Checked)
+                {
+                    UnloadButton.Enabled = false;
+                    AutoUnloadButton.Enabled = true;
+                }
+                else
+                {
+                    timer1.Stop();
+                    UnloadButton.Enabled = true;
+                    AutoUnloadButton.Enabled = false;
+                }
             }
+
             else
             {
-                timer1.Stop();
-                StartTime.Enabled = true;
-                EndTime.Enabled = true;
-                UnloadButton.Enabled = true;
-                TimeInterval.Enabled = false;
-                AutoUnloadButton.Enabled = false;
-                TimeoutTextBox.Enabled = false;
+                MessageBox.Show("База данных пока что пуста, загрузите данные за какой-либо период времени");
             }
         }
 
@@ -95,7 +99,7 @@ namespace BinanceClient
                 var info = repos.GetLastElement();
                 DateTime start = info.Time;
                 int id = info.Id;
-                unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start.AddMilliseconds(1), start.AddMinutes(Convert.ToInt32(TimeInterval.Text)));
+                unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start.AddMilliseconds(1), DateTime.Now);
                 IEnumerable<BinanceInfo> ieinfo = repos.GetRangeOfElementsFromId(id + 1);
                 foreach (var item in ieinfo)
                     outputer.OutPutBinanceInfoToTextbox(item, UnloadedInfoTextBox);

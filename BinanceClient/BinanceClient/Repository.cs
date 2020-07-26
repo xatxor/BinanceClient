@@ -9,6 +9,13 @@ namespace BinanceClient
 {
     class Repository
     {
+        public bool IsHaveInfo()
+        {
+            using (ApplicationContext context = new ApplicationContext())
+            {
+                return context.BinanceInfo.Any();
+            }
+        }
         public void AddBinanceInfo(BinanceInfo info)
         {
             using (ApplicationContext context = new ApplicationContext())

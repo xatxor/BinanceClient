@@ -45,8 +45,6 @@
             this.EndTime = new System.Windows.Forms.DateTimePicker();
             this.AutoUnloadButton = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.label6 = new System.Windows.Forms.Label();
-            this.TimeInterval = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource1)).BeginInit();
             this.SuspendLayout();
@@ -87,7 +85,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.label3.Location = new System.Drawing.Point(24, 323);
+            this.label3.Location = new System.Drawing.Point(24, 278);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(222, 20);
             this.label3.TabIndex = 7;
@@ -95,7 +93,7 @@
             // 
             // TimeoutTextBox
             // 
-            this.TimeoutTextBox.Location = new System.Drawing.Point(28, 346);
+            this.TimeoutTextBox.Location = new System.Drawing.Point(28, 301);
             this.TimeoutTextBox.Name = "TimeoutTextBox";
             this.TimeoutTextBox.Size = new System.Drawing.Size(239, 20);
             this.TimeoutTextBox.TabIndex = 8;
@@ -181,7 +179,7 @@
             // AutoUnloadButton
             // 
             this.AutoUnloadButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.AutoUnloadButton.Location = new System.Drawing.Point(28, 372);
+            this.AutoUnloadButton.Location = new System.Drawing.Point(28, 336);
             this.AutoUnloadButton.Name = "AutoUnloadButton";
             this.AutoUnloadButton.Size = new System.Drawing.Size(239, 29);
             this.AutoUnloadButton.TabIndex = 17;
@@ -193,31 +191,11 @@
             // 
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.label6.Location = new System.Drawing.Point(24, 277);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(292, 20);
-            this.label6.TabIndex = 19;
-            this.label6.Text = "За раз выгружать данные за ... минут";
-            // 
-            // TimeInterval
-            // 
-            this.TimeInterval.Location = new System.Drawing.Point(28, 300);
-            this.TimeInterval.Name = "TimeInterval";
-            this.TimeInterval.Size = new System.Drawing.Size(239, 20);
-            this.TimeInterval.TabIndex = 20;
-            this.TimeInterval.Text = "5";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(715, 430);
-            this.Controls.Add(this.TimeInterval);
-            this.Controls.Add(this.label6);
             this.Controls.Add(this.AutoUnloadButton);
             this.Controls.Add(this.EndTime);
             this.Controls.Add(this.StartTime);
@@ -258,8 +236,6 @@
         private System.Windows.Forms.DateTimePicker EndTime;
         private System.Windows.Forms.Button AutoUnloadButton;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox TimeInterval;
     }
 }
 
