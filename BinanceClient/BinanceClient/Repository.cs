@@ -34,38 +34,21 @@ namespace BinanceClient
             }
         }
 
-        public BinanceInfo GetElementByTime(DateTime time)
+
+        public IEnumerable<BinanceInfo> GetRangeOfElementsByTime(DateTime time, string symbol)
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                var result = context.BinanceInfo.ToList().Where(e => e.Time == time).Last();
+                var result = context.BinanceInfo.ToList().Where(e => (e.Time.CompareTo(time) > 0) && (e.Symbol == symbol));
                 return result;
             }
         }
 
-        public BinanceInfo GetElementById(int id)
+        public IEnumerable<BinanceInfo> GetRangeOfElementsByTime(DateTime time1, DateTime time2, string symbol)
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                var result = context.BinanceInfo.Where(e => e.Id == id).Last();
-                return result;
-            }
-        }
-
-        public IEnumerable<BinanceInfo> GetRangeOfElementsByTime(DateTime time)
-        {
-            using (ApplicationContext context = new ApplicationContext())
-            {
-                var result = context.BinanceInfo.ToList().Where(e => e.Time.CompareTo(time) > 0);
-                return result;
-            }
-        }
-
-        public IEnumerable<BinanceInfo> GetRangeOfElementsByTime(DateTime time1, DateTime time2)
-        {
-            using (ApplicationContext context = new ApplicationContext())
-            {
-                var result = context.BinanceInfo.ToList().Where(e => e.Time.CompareTo(time1) > 0 && e.Time.CompareTo(time2) < 0);
+                var result = context.BinanceInfo.ToList().Where(e => (e.Time.CompareTo(time1) > 0) && (e.Time.CompareTo(time2) < 0) && (e.Symbol == symbol));
                 return result;
             }
         }

@@ -168,3 +168,5 @@ C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\Binance
 C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\BinanceClient\bin\Debug\Pomelo.EntityFrameworkCore.MySql.dll
 C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\BinanceClient\bin\Debug\Pomelo.JsonObject.dll
 C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\BinanceClient\bin\Debug\MySqlConnector.xml
+C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\BinanceClient\bin\Debug\Microsoft.EntityFrameworkCore.Design.dll
+C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\BinanceClient\bin\Debug\Microsoft.EntityFrameworkCore.Design.xml

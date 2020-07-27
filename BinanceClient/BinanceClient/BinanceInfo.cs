@@ -11,13 +11,14 @@ namespace BinanceClient
         public int Id { get; set; }
         public DateTime Time { get; set; }
         public string Symbol { get; set; }
-        public decimal TradeQuantity { get; set; }
+        public int TradeQuantity { get; set; }
         public decimal RatePrice { get; set; }
 
-        public BinanceInfo(DateTime time, string symbol, decimal tradeQuantity, decimal ratePrice)
+        public BinanceInfo(DateTime time, string symbol, int tradeQuantity, decimal ratePrice)
         {
+            Symbol = symbol;
             Time = time;
-            TradeQuantity = Math.Round(tradeQuantity, 2);
+            TradeQuantity = tradeQuantity;
             RatePrice = ratePrice;
         }
     }

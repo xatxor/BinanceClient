@@ -262,6 +262,11 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20200727192934_FirstMigration.cs" />
+    <Compile Include="Migrations\20200727192934_FirstMigration.designer.cs">
+      <DependentUpon>20200727192934_FirstMigration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\ApplicationContextModelSnapshot.cs" />
     <Compile Include="OutPuter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

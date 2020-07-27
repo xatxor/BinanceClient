@@ -102,19 +102,19 @@
             // UnloadedInfoTextBox
             // 
             this.UnloadedInfoTextBox.BackColor = System.Drawing.SystemColors.Window;
-            this.UnloadedInfoTextBox.Location = new System.Drawing.Point(347, 48);
+            this.UnloadedInfoTextBox.Location = new System.Drawing.Point(332, 48);
             this.UnloadedInfoTextBox.Multiline = true;
             this.UnloadedInfoTextBox.Name = "UnloadedInfoTextBox";
             this.UnloadedInfoTextBox.ReadOnly = true;
             this.UnloadedInfoTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.UnloadedInfoTextBox.Size = new System.Drawing.Size(324, 353);
+            this.UnloadedInfoTextBox.Size = new System.Drawing.Size(349, 353);
             this.UnloadedInfoTextBox.TabIndex = 9;
             // 
             // label4
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.label4.Location = new System.Drawing.Point(343, 25);
+            this.label4.Location = new System.Drawing.Point(328, 25);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(174, 20);
             this.label4.TabIndex = 10;

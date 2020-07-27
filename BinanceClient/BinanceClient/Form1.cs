@@ -41,19 +41,22 @@ namespace BinanceClient
         {
             try
             {
+                var symbol = SymbolsComboBox.SelectedItem.ToString();
                 using (var client = new Binance.Net.BinanceClient())
                 {
-                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), StartTime.Value,
-                        EndTime.Value);
+                    var tradesAndRates = unloader.GetTradesAndRates(client, symbol, StartTime.Value, EndTime.Value);
+                    if (tradesAndRates != null)
+                    {
+                        foreach (var t in tradesAndRates)
+                            repos.AddBinanceInfo(new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price));
+                    }
                 }
 
-                List<BinanceInfo> ieinfo = repos.GetRangeOfElementsByTime(StartTime.Value, EndTime.Value).ToList();
+                List<BinanceInfo> ieinfo = repos.GetRangeOfElementsByTime(StartTime.Value, EndTime.Value, symbol).ToList();
                 if (ieinfo.Any())
                 {
                     foreach (var item in ieinfo)
-                    {
                         outputer.OutPutBinanceInfoToTextbox(item, UnloadedInfoTextBox);
-                    }
                 }
                 else
                     MessageBox.Show("За этот период записей нет");
@@ -101,27 +104,35 @@ namespace BinanceClient
             {
                 var info = repos.GetLastElement();
                 DateTime start = info.Time;
-                DateTime end = DateTime.Now;
-                double count = repos.GetRangeOfElementsByTime(start, DateTime.Now).Count();
+                DateTime end = DateTime.UtcNow;
+                if(start.AddHours(1).CompareTo(end) < 0)
+                {
+                    end = start.AddHours(1);
+                }
+                double count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
                 //проверяем, успеет ли unloader загрузить данные сервера меньше чем за интервал таймера
                 //550 - приблительное количество записей, которое успевает прогрузить unloader за одну минуту
-                var item = repos.GetElementByTime(start);
-                if (count > timer1.Interval * 550)
+                while (count > timer1.Interval * 550)
                 {
-                    //откладываем остальные записи на след тик
-                    end = repos.GetElementById(item.Id + timer1.Interval * 550).Time;
+                    end.AddMinutes(-5);
+                    count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
                 }
 
                 //проверяем, не больше ли 1000 записей в этом промежутке времени
-                if (count > 1000)
+                while (count > 1000)
                 {
-                    //откладываем остальные записи на след тик
-                    end = repos.GetElementById(item.Id + 1000).Time;
+                    end.AddMinutes(-5);
+                    count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
+                }
+                var symbol = SymbolsComboBox.SelectedItem.ToString();
+                var tradesAndRates = unloader.GetTradesAndRates(client, symbol, start.AddMilliseconds(1), end);
+                if (tradesAndRates != null)
+                {
+                    foreach (var t in tradesAndRates)
+                        repos.AddBinanceInfo(new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price));
                 }
 
-                unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start.AddMilliseconds(1), end);
-
-                IEnumerable<BinanceInfo> ieinfo = repos.GetRangeOfElementsByTime(start);
+                List<BinanceInfo> ieinfo = repos.GetRangeOfElementsByTime(start, symbol).ToList();
                 foreach (var i in ieinfo)
                     outputer.OutPutBinanceInfoToTextbox(i, UnloadedInfoTextBox);
             }
