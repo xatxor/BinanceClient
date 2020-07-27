@@ -29,7 +29,7 @@ namespace BinanceClient
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                var result = context.BinanceInfo.Last();
+                var result = context.BinanceInfo.AsEnumerable().Last();
                 return result;
             }
         }
@@ -43,20 +43,29 @@ namespace BinanceClient
             }
         }
 
-        public IEnumerable<BinanceInfo> GetRangeOfElementsFromId(int id)
+        public BinanceInfo GetElementById(int id)
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                var result = context.BinanceInfo.ToList().Where(e => e.Id > id);
+                var result = context.BinanceInfo.Where(e => e.Id == id).Last();
                 return result;
             }
         }
 
-        public IEnumerable<BinanceInfo> GetRangeOfElementsFromId(int id1, int id2)
+        public IEnumerable<BinanceInfo> GetRangeOfElementsByTime(DateTime time)
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                var result = context.BinanceInfo.ToList().Where(e => e.Id > id1 && e.Id < id2);
+                var result = context.BinanceInfo.ToList().Where(e => e.Time.CompareTo(time) > 0);
+                return result;
+            }
+        }
+
+        public IEnumerable<BinanceInfo> GetRangeOfElementsByTime(DateTime time1, DateTime time2)
+        {
+            using (ApplicationContext context = new ApplicationContext())
+            {
+                var result = context.BinanceInfo.ToList().Where(e => e.Time.CompareTo(time1) > 0 && e.Time.CompareTo(time2) < 0);
                 return result;
             }
         }

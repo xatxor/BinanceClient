@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using MySQL;
+using Pomelo.EntityFrameworkCore;
 
 namespace BinanceClient
 {
@@ -14,12 +14,11 @@ namespace BinanceClient
 
         public ApplicationContext()
         {
-            Database.EnsureCreated();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySQL("server=localhost;UserId=admin;Password=admin;database=binanceclientbd;");
+            optionsBuilder.UseMySql("server=localhost;UserId=root;Password=root;database=binanceclientbd;");
         }
     }
 }

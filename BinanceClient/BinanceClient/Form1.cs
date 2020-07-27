@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,7 @@ namespace BinanceClient
         private Unloader unloader = new Unloader();
         private Repository repos = new Repository();
         private OutPuter outputer = new OutPuter();
+
         public Form1()
         {
             InitializeComponent();
@@ -25,10 +27,11 @@ namespace BinanceClient
                 foreach (var symbol in client.GetExchangeInfo().Data.Symbols)
                     SymbolsComboBox.Items.Add(symbol.Name);
             }
-            
-            SymbolsComboBox.SelectedItem = "ETHBTC";        // выберем сразу хоть что-то чтобы не рухнуло если нажать выгрузку    
-            StartTime.Value = DateTime.UtcNow.AddHours(-1);   // выберем сразу последний час по UTC
-            EndTime.Value = DateTime.UtcNow;              // там записи имеют время в UTC чтобы весь мир пользовался
+
+            SymbolsComboBox.SelectedItem =
+                "ETHBTC"; // выберем сразу хоть что-то чтобы не рухнуло если нажать выгрузку    
+            StartTime.Value = DateTime.UtcNow.AddHours(-1); // выберем сразу последний час по UTC
+            EndTime.Value = DateTime.UtcNow; // там записи имеют время в UTC чтобы весь мир пользовался
 
             AutoUnloadButton.Enabled = false;
         }
@@ -40,12 +43,11 @@ namespace BinanceClient
             {
                 using (var client = new Binance.Net.BinanceClient())
                 {
-                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), StartTime.Value, EndTime.Value);
+                    unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), StartTime.Value,
+                        EndTime.Value);
                 }
 
-                var info1 = repos.GetElementByTime(StartTime.Value);
-                var info2 = repos.GetElementByTime(EndTime.Value);
-                List<BinanceInfo> ieinfo = repos.GetRangeOfElementsFromId(info1.Id, info2.Id).ToList();
+                List<BinanceInfo> ieinfo = repos.GetRangeOfElementsByTime(StartTime.Value, EndTime.Value).ToList();
                 if (ieinfo.Any())
                 {
                     foreach (var item in ieinfo)
@@ -56,7 +58,7 @@ namespace BinanceClient
                 else
                     MessageBox.Show("За этот период записей нет");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show($"ОШИБКА: {ex.Message}");
             }
@@ -94,16 +96,36 @@ namespace BinanceClient
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+
             using (Binance.Net.BinanceClient client = new Binance.Net.BinanceClient())
             {
                 var info = repos.GetLastElement();
                 DateTime start = info.Time;
-                int id = info.Id;
-                unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start.AddMilliseconds(1), DateTime.Now);
-                IEnumerable<BinanceInfo> ieinfo = repos.GetRangeOfElementsFromId(id + 1);
-                foreach (var item in ieinfo)
-                    outputer.OutPutBinanceInfoToTextbox(item, UnloadedInfoTextBox);
+                DateTime end = DateTime.Now;
+                double count = repos.GetRangeOfElementsByTime(start, DateTime.Now).Count();
+                //проверяем, успеет ли unloader загрузить данные сервера меньше чем за интервал таймера
+                //550 - приблительное количество записей, которое успевает прогрузить unloader за одну минуту
+                var item = repos.GetElementByTime(start);
+                if (count > timer1.Interval * 550)
+                {
+                    //откладываем остальные записи на след тик
+                    end = repos.GetElementById(item.Id + timer1.Interval * 550).Time;
+                }
+
+                //проверяем, не больше ли 1000 записей в этом промежутке времени
+                if (count > 1000)
+                {
+                    //откладываем остальные записи на след тик
+                    end = repos.GetElementById(item.Id + 1000).Time;
+                }
+
+                unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start.AddMilliseconds(1), end);
+
+                IEnumerable<BinanceInfo> ieinfo = repos.GetRangeOfElementsByTime(start);
+                foreach (var i in ieinfo)
+                    outputer.OutPutBinanceInfoToTextbox(i, UnloadedInfoTextBox);
             }
         }
     }
+
 }
