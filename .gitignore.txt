@@ -1,5 +1,5 @@
-.vs/*
-packages/*
-BinanceClient/bin/*
-BinanceClient/bin/Debug/*
-BinanceClient/obj/*
+BinanceClient/.vs/*
+BinanceClient/packages/*
+BinanceClient/BinanceClient/bin/*
+BinanceClient/BinanceClient/bin/Debug/*
+BinanceClient/BinanceClient/obj/*
