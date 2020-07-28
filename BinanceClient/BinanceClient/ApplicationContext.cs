@@ -15,7 +15,7 @@ namespace BinanceClient
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySql("server=localhost;UserId=root;Password=root;database=binanceclientbd;");
+            optionsBuilder.UseMySql("server=116.203.82.48;UserId=binance;Password=binance;database=binance;");
         }
     }
 }
