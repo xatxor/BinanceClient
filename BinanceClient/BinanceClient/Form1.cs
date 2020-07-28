@@ -63,8 +63,13 @@ namespace BinanceClient
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"ОШИБКА: {ex.Message}");
+                MessageBox.Show($"ОШИБКА: {FullMessage(ex)}");
             }
+        }
+
+        private static string FullMessage(Exception ex)
+        {
+            return ex.Message+(ex.InnerException==null?".":(FullMessage(ex.InnerException)));
         }
 
         private void AutoUnloadCheckBox_CheckedChanged(object sender, EventArgs e)
