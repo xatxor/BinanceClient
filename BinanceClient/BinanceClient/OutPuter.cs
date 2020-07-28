@@ -9,9 +9,24 @@ namespace BinanceClient
 {
     class OutPuter
     {
+        int maxLen = 1024 * 8;
         public void OutPutBinanceInfoToTextbox(BinanceInfo info, TextBox textbox)
         {
-            textbox.Text += info.Time.ToString() + " " + info.TradeQuantity.ToString() + " " + info.RatePrice.ToString() + Environment.NewLine;
+            Log(info.Time.ToString() + " " + info.TradeQuantity.ToString() + " " + info.RatePrice.ToString(), textbox);
+        }
+
+        public void Log(string moreText, TextBox textbox)
+        {
+            moreText = DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")+"   "+moreText+Environment.NewLine;
+
+            int extraTextLen = textbox.Text.Length + moreText.Length - maxLen;  //  если вместе с добавкой текст будет слишком длинный, то узнаем длину "хвоста"
+            if (extraTextLen > 0)                                               //  и укоротим текст на длину хвоста
+                textbox.Text = textbox.Text.Substring(extraTextLen);            //  иначе со временем станут длинные логи, и они будут тормозить всё жутко
+            textbox.Text += moreText;
+
+            textbox.Select(textbox.Text.Length, 0); //  перемотка в конец текста
+            textbox.ScrollToCaret();
+            Application.DoEvents();
         }
     }
 }

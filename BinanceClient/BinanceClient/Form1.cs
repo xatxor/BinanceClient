@@ -34,29 +34,45 @@ namespace BinanceClient
             EndTime.Value = DateTime.UtcNow; // там записи имеют время в UTC чтобы весь мир пользовался
 
             AutoUnloadButton.Enabled = false;
+
+            Log("Привет! Загрузчик готов к работе!");
         }
 
+        private void Log(string msg)
+        {
+            outputer.Log(msg, UnloadedInfoTextBox);
+        }
 
         private void UnloadButton_Click(object sender, EventArgs e)
         {
             try
             {
                 var symbol = SymbolsComboBox.SelectedItem.ToString();
+                Log($"Начинаем загрузку {symbol} с {StartTime.Value} по {EndTime.Value}");
+
                 using (var client = new Binance.Net.BinanceClient())
                 {
                     var tradesAndRates = unloader.GetTradesAndRates(client, symbol, StartTime.Value, EndTime.Value);
+                    Log("Данные с сервера получены. Начинаем сохранять...");
                     if (tradesAndRates != null)
                     {
                         foreach (var t in tradesAndRates)
-                            repos.AddBinanceInfo(new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price));
+                        {
+                            var binInfo = new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
+                            repos.AddBinanceInfo(binInfo);
+                            outputer.OutPutBinanceInfoToTextbox(binInfo, UnloadedInfoTextBox);
+                        }
                     }
                 }
+
+                Log($"Попробуем выгрузить заданный период теперь уже из нашей БД...");
 
                 List<BinanceInfo> ieinfo = repos.GetRangeOfElementsByTime(StartTime.Value, EndTime.Value, symbol).ToList();
                 if (ieinfo.Any())
                 {
                     foreach (var item in ieinfo)
                         outputer.OutPutBinanceInfoToTextbox(item, UnloadedInfoTextBox);
+                    Log($"Итого в БД найдено {ieinfo.Count()} записей за указанный период");
                 }
                 else
                     MessageBox.Show("За этот период записей нет");
@@ -76,6 +92,7 @@ namespace BinanceClient
         {
             if (repos.IsHaveInfo())
             {
+                Log("База готова к пополнению");
                 if (AutoUnloadCheckBox.Checked)
                 {
                     UnloadButton.Enabled = false;
@@ -100,10 +117,12 @@ namespace BinanceClient
             //1 минута - 60000 миллисекунд
             timer1.Interval = Convert.ToInt32(TimeoutTextBox.Text) * 60000;
             timer1.Start();
+            Log("Поехали!");
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            Log("Сработал таймер!");
 
             using (Binance.Net.BinanceClient client = new Binance.Net.BinanceClient())
             {
@@ -130,16 +149,17 @@ namespace BinanceClient
                     count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
                 }
                 var symbol = SymbolsComboBox.SelectedItem.ToString();
-                var tradesAndRates = unloader.GetTradesAndRates(client, symbol, start.AddMilliseconds(1), end);
+                var tradesAndRates = unloader.GetTradesAndRates(client, symbol, start.AddMilliseconds(1), end).ToArray();
                 if (tradesAndRates != null)
                 {
-                    foreach (var t in tradesAndRates)
-                        repos.AddBinanceInfo(new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price));
+                    for (int i=0; i<tradesAndRates.Length;i++)
+                    {
+                        var t = tradesAndRates[i];
+                        var binInfo = new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
+                        repos.AddBinanceInfo(binInfo);
+                        outputer.OutPutBinanceInfoToTextbox(binInfo, UnloadedInfoTextBox);
+                    }
                 }
-
-                List<BinanceInfo> ieinfo = repos.GetRangeOfElementsByTime(start, symbol).ToList();
-                foreach (var i in ieinfo)
-                    outputer.OutPutBinanceInfoToTextbox(i, UnloadedInfoTextBox);
             }
         }
     }
