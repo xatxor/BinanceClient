@@ -16,11 +16,11 @@ namespace BinanceClient
                 return context.BinanceInfo.Any();
             }
         }
-        public void AddBinanceInfo(BinanceInfo info)
+        public void AddBinanceInfo(IEnumerable<BinanceInfo> ieinfo)
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                context.BinanceInfo.Add(info);
+                context.BinanceInfo.AddRange(ieinfo);
                 context.SaveChanges();
             }
         }

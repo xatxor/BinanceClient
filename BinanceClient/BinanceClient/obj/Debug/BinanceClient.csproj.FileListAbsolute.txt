@@ -39,7 +39,6 @@ C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\D
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Microsoft.Extensions.Options.dll
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Microsoft.Extensions.Primitives.dll
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\MySql.Data.dll
-C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\MySql.Data.EntityFrameworkCore.dll
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Renci.SshNet.dll
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\System.Buffers.dll
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\System.Collections.Immutable.dll
@@ -72,7 +71,6 @@ C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\D
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Microsoft.Extensions.Options.xml
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Microsoft.Extensions.Primitives.xml
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\MySql.Data.xml
-C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\MySql.Data.EntityFrameworkCore.xml
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Renci.SshNet.xml
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\System.Buffers.xml
 C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\System.Collections.Immutable.xml
@@ -170,3 +168,9 @@ C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\Binance
 C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\BinanceClient\bin\Debug\MySqlConnector.xml
 C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\BinanceClient\bin\Debug\Microsoft.EntityFrameworkCore.Design.dll
 C:\Users\kira\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\BinanceClient\bin\Debug\Microsoft.EntityFrameworkCore.Design.xml
+C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Microsoft.EntityFrameworkCore.Design.dll
+C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\MySqlConnector.dll
+C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Pomelo.EntityFrameworkCore.MySql.dll
+C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Pomelo.JsonObject.dll
+C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\Microsoft.EntityFrameworkCore.Design.xml
+C:\Users\MSI PC\Documents\git\BinanceClientGit\BinanceClient\BinanceClient\bin\Debug\MySqlConnector.xml

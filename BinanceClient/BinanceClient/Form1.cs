@@ -5,10 +5,12 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Remoting;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Binance.Net;
+using Binance.Net.Objects.Spot.MarketData;
 
 namespace BinanceClient
 {
@@ -49,21 +51,23 @@ namespace BinanceClient
             {
                 var symbol = SymbolsComboBox.SelectedItem.ToString();
                 Log($"Начинаем загрузку {symbol} с {StartTime.Value} по {EndTime.Value}");
-
+                IEnumerable<BinanceAggregatedTrade> tradesAndRates;
                 using (var client = new Binance.Net.BinanceClient())
                 {
-                    var tradesAndRates = unloader.GetTradesAndRates(client, symbol, StartTime.Value, EndTime.Value);
-                    Log("Данные с сервера получены. Начинаем сохранять...");
+                    tradesAndRates = unloader.GetTradesAndRates(client, symbol, StartTime.Value, EndTime.Value);
+                }
+
+                Log("Данные с сервера получены. Начинаем сохранять...");
                     if (tradesAndRates != null)
                     {
+                        List<BinanceInfo> listinfo = new List<BinanceInfo>();
                         foreach (var t in tradesAndRates)
                         {
-                            var binInfo = new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
-                            repos.AddBinanceInfo(binInfo);
-                            outputer.OutPutBinanceInfoToTextbox(binInfo, UnloadedInfoTextBox);
+                            BinanceInfo binanceInfo = new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
+                            listinfo.Add(binanceInfo);
                         }
+                        repos.AddBinanceInfo(listinfo);
                     }
-                }
 
                 Log($"Попробуем выгрузить заданный период теперь уже из нашей БД...");
 
@@ -149,16 +153,19 @@ namespace BinanceClient
                     count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
                 }
                 var symbol = SymbolsComboBox.SelectedItem.ToString();
-                var tradesAndRates = unloader.GetTradesAndRates(client, symbol, start.AddMilliseconds(1), end).ToArray();
+                IEnumerable<BinanceAggregatedTrade> tradesAndRates;
+                tradesAndRates = unloader.GetTradesAndRates(client, symbol, start.AddMilliseconds(1), end);
+
+                    Log("Данные с сервера получены. Начинаем сохранять...");
                 if (tradesAndRates != null)
                 {
-                    for (int i=0; i<tradesAndRates.Length;i++)
+                    List<BinanceInfo> listinfo = new List<BinanceInfo>();
+                    foreach (var t in tradesAndRates)
                     {
-                        var t = tradesAndRates[i];
-                        var binInfo = new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
-                        repos.AddBinanceInfo(binInfo);
-                        outputer.OutPutBinanceInfoToTextbox(binInfo, UnloadedInfoTextBox);
+                        BinanceInfo binanceinfo = new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
+                        listinfo.Add(binanceinfo);
                     }
+                    repos.AddBinanceInfo(listinfo);
                 }
             }
         }
