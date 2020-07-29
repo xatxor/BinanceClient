@@ -37,7 +37,7 @@ namespace BinanceClient
 
             AutoUnloadButton.Enabled = false;
 
-            Log("Привет! Загрузчик готов к работе!");
+            Log("Привет! Загрузчик готов к работе! v.0.1");
         }
 
         private void Log(string msg)
