@@ -15,11 +15,21 @@ namespace BinanceClient
                 return context.BinanceInfo.Any();
             }
         }
+
+        public IEnumerable<long> IdOfInfoNotInBd(ApplicationContext context, IEnumerable<BinanceInfo> ieinfo)
+        {
+            var newIDs = ieinfo.Select(u => u.Id).Distinct().ToArray();
+            var infoInDb = context.BinanceInfo.Where(u => newIDs.Contains(u.Id))
+                .Select(u => u.Id).ToArray();
+            var usersNotInDb = newIDs.Where(u => !infoInDb.Contains(u));
+            return usersNotInDb;
+        }
         public void AddBinanceInfo(IEnumerable<BinanceInfo> ieinfo)
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                context.BinanceInfo.AddRange(ieinfo);
+                var ids = IdOfInfoNotInBd(context, ieinfo);
+                context.BinanceInfo.AddRange(ieinfo.Where(u => ids.Contains(u.Id)));
                 context.SaveChanges();
             }
         }
