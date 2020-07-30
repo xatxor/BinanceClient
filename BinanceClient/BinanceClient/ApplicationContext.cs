@@ -11,7 +11,6 @@ namespace BinanceClient
     class ApplicationContext : DbContext
     {
         public DbSet<BinanceInfo> BinanceInfo { get; set; }
-        public ApplicationContext() { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

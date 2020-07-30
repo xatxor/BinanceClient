@@ -63,7 +63,7 @@ namespace BinanceClient
                         List<BinanceInfo> listinfo = new List<BinanceInfo>();
                         foreach (var t in tradesAndRates)
                         {
-                            BinanceInfo binanceInfo = new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
+                            BinanceInfo binanceInfo = new BinanceInfo(t.AggregateTradeId, t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
                             listinfo.Add(binanceInfo);
                         }
                         repos.AddBinanceInfo(listinfo);
@@ -162,7 +162,7 @@ namespace BinanceClient
                     List<BinanceInfo> listinfo = new List<BinanceInfo>();
                     foreach (var t in tradesAndRates)
                     {
-                        BinanceInfo binanceinfo = new BinanceInfo(t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
+                        BinanceInfo binanceinfo = new BinanceInfo(t.AggregateTradeId, t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
                         listinfo.Add(binanceinfo);
                     }
                     repos.AddBinanceInfo(listinfo);

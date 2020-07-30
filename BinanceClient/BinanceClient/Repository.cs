@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace BinanceClient
 {
@@ -30,16 +29,6 @@ namespace BinanceClient
             using (ApplicationContext context = new ApplicationContext())
             {
                 var result = context.BinanceInfo.AsEnumerable().Last();
-                return result;
-            }
-        }
-
-
-        public IEnumerable<BinanceInfo> GetRangeOfElementsByTime(DateTime time, string symbol)
-        {
-            using (ApplicationContext context = new ApplicationContext())
-            {
-                var result = context.BinanceInfo.ToList().Where(e => (e.Time.CompareTo(time) > 0) && (e.Symbol == symbol));
                 return result;
             }
         }
