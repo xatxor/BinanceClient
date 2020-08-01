@@ -19,6 +19,7 @@ namespace BinanceClient
         private Unloader unloader = new Unloader();
         private Repository repos = new Repository();
         private OutPuter outputer = new OutPuter();
+        private string SelectedSymbol => SymbolsComboBox.SelectedItem.ToString();
 
         public Form1()
         {
@@ -49,43 +50,26 @@ namespace BinanceClient
         {
             try
             {
-                var symbol = SymbolsComboBox.SelectedItem.ToString();
-                Log($"Начинаем загрузку {symbol} с {StartTime.Value} по {EndTime.Value}");
-                IEnumerable<BinanceAggregatedTrade> tradesAndRates;
+                Log($"Начинаем загрузку {SelectedSymbol} с {StartTime.Value} по {EndTime.Value}");
                 using (var client = new Binance.Net.BinanceClient())
                 {
-                    tradesAndRates = unloader.GetTradesAndRates(client, symbol, StartTime.Value, EndTime.Value);
+                    Log("Данные с сервера получены. Начинаем сохранять...");
+                    repos.AddBinanceInfo(
+                        unloader.GetTradesAndRates(client, SelectedSymbol, StartTime.Value, EndTime.Value)?
+                            .Select(t =>
+                                new BinanceInfo(t.AggregateTradeId, t.TradeTime, SelectedSymbol, Convert.ToInt32(t.Quantity), t.Price)
+                                )
+                        );
+
+                    Log("Готово!");
                 }
-
-                Log("Данные с сервера получены. Начинаем сохранять...");
-                    if (tradesAndRates != null)
-                    {
-                        List<BinanceInfo> listinfo = new List<BinanceInfo>();
-                        foreach (var t in tradesAndRates)
-                        {
-                            BinanceInfo binanceInfo = new BinanceInfo(t.AggregateTradeId, t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
-                            listinfo.Add(binanceInfo);
-                        }
-                        repos.AddBinanceInfo(listinfo);
-                    }
-
-                Log($"Попробуем выгрузить заданный период теперь уже из нашей БД...");
-
-                List<BinanceInfo> ieinfo = repos.GetRangeOfElementsByTime(StartTime.Value, EndTime.Value, symbol).ToList();
-                if (ieinfo.Any())
-                {
-                    foreach (var item in ieinfo)
-                        outputer.OutPutBinanceInfoToTextbox(item, UnloadedInfoTextBox);
-                    Log($"Итого в БД найдено {ieinfo.Count()} записей за указанный период");
-                }
-                else
-                    MessageBox.Show("За этот период записей нет");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"ОШИБКА: {FullMessage(ex)}");
             }
         }
+
 
         private static string FullMessage(Exception ex)
         {
@@ -168,6 +152,18 @@ namespace BinanceClient
                     repos.AddBinanceInfo(listinfo);
                 }
             }
+        }
+
+        private void FromDBButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var ieinfo = repos.GetRangeOfElementsByTime(StartTime.Value, EndTime.Value, SelectedSymbol);
+                outputer.OutPutBinanceInfoToTextbox($"Записи из БД:\r\n{ieinfo}", UnloadedInfoTextBox);
+                Log($"Итого в БД найдено {ieinfo.Count()} записей за указанный период");
+            }
+            catch(Exception ex)
+            { Log($"EXCEPTION: {FullMessage(ex)}"); }
         }
     }
 

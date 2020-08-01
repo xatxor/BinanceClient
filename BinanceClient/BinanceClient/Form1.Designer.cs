@@ -45,6 +45,7 @@
             this.EndTime = new System.Windows.Forms.DateTimePicker();
             this.AutoUnloadButton = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.FromDBButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource1)).BeginInit();
             this.SuspendLayout();
@@ -123,9 +124,9 @@
             // UnloadButton
             // 
             this.UnloadButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.UnloadButton.Location = new System.Drawing.Point(28, 192);
+            this.UnloadButton.Location = new System.Drawing.Point(167, 192);
             this.UnloadButton.Name = "UnloadButton";
-            this.UnloadButton.Size = new System.Drawing.Size(239, 29);
+            this.UnloadButton.Size = new System.Drawing.Size(100, 29);
             this.UnloadButton.TabIndex = 11;
             this.UnloadButton.Text = "Выгрузить";
             this.UnloadButton.UseVisualStyleBackColor = true;
@@ -191,6 +192,17 @@
             // 
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // FromDBButton
+            // 
+            this.FromDBButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.FromDBButton.Location = new System.Drawing.Point(28, 192);
+            this.FromDBButton.Name = "FromDBButton";
+            this.FromDBButton.Size = new System.Drawing.Size(100, 29);
+            this.FromDBButton.TabIndex = 11;
+            this.FromDBButton.Text = "Показать";
+            this.FromDBButton.UseVisualStyleBackColor = true;
+            this.FromDBButton.Click += new System.EventHandler(this.FromDBButton_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -201,6 +213,7 @@
             this.Controls.Add(this.StartTime);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.SymbolsComboBox);
+            this.Controls.Add(this.FromDBButton);
             this.Controls.Add(this.UnloadButton);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.UnloadedInfoTextBox);
@@ -236,6 +249,7 @@
         private System.Windows.Forms.DateTimePicker EndTime;
         private System.Windows.Forms.Button AutoUnloadButton;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Button FromDBButton;
     }
 }
 
