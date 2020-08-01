@@ -96,6 +96,7 @@ namespace BinanceCore
         private void Log(string v)
         {
             Title = v;
+            Console.WriteLine(v);
             DoEvents();
         }
 
@@ -224,13 +225,20 @@ namespace BinanceCore
 
         private void LoadDefaultProject()
         {
-            var proj = Project.Load();                                      //  Загружаем объект сохранёнки
-            ClearProject();
-            foreach (var f in proj.fractals)                                //  перебираем все фракталы из загруженного проекта
-                CreateFractalConfiguration(f);
+            try
+            {
+                var proj = Project.Load();                                      //  Загружаем объект сохранёнки
+                ClearProject();
+                foreach (var f in proj.fractals)                                //  перебираем все фракталы из загруженного проекта
+                    CreateFractalConfiguration(f);
 
-            intervalTB.Text = proj.interval.ToString();                     //  загружаем интервал автоматического обновления
-            Symbols.Text = proj.ticker;                                     //  устанавливаем выбранный тикер
+                intervalTB.Text = proj.interval.ToString();                     //  загружаем интервал автоматического обновления
+                Symbols.Text = proj.ticker;                                     //  устанавливаем выбранный тикер
+            }
+            catch (Exception ex)
+            {
+                Log($"Проект загрузить не удалось ({ex.Message})");
+            }                                    //  устанавливаем выбранный тикер
         }
 
         private void ClearProject()

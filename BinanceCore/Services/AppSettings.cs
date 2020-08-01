@@ -24,8 +24,8 @@ namespace BinanceCore.Services
         {
             T t = new T();
             if (File.Exists(fileName))
-                t = (new JavaScriptSerializer()).Deserialize<T>(File.ReadAllText(fileName));
-            return t;
+                return new JavaScriptSerializer().Deserialize<T>(File.ReadAllText(fileName));
+            else throw new Exception($"Config file '{fileName}' not found");
         }
     }
 }
