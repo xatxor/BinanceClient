@@ -109,25 +109,24 @@ namespace BinanceCore
                 var symbol = Symbols.SelectedItem.ToString();
                 Log("Loading history...");
                 var span = new TimeSpan(0, 1, 0, 0);
-                List<Tuple<DateTime, decimal>> trades, rates;
+                List<BinanceInfo> BinanceInfo = new List<BinanceInfo>();
                 DateTime fin = DateTime.UtcNow;
 
-                GetTradesAndRates(client, symbol, span, out trades, out rates, fin);
+                GetTradesAndRates(client, symbol, span, out BinanceInfo, fin);
                 Log("History loaded. Drawing...");
 
-                iv.LoadBitmap(Drawing.MakeGraph(symbol, fin, span * 24, rates, trades));
+                iv.LoadBitmap(Drawing.MakeGraph(symbol, fin, span * 24, BinanceInfo));
 
-                var code = Coding.MakeCode(fin, span * 24, rates);
+                var code = Coding.MakeCode(fin, span * 24, BinanceInfo);
                 Log("Image ready. Code: " + code);
             }
         }
 
 
 
-        private void GetTradesAndRates(BinanceClient client, string symbol, TimeSpan span, out List<Tuple<DateTime, decimal>> trades, out List<Tuple<DateTime, decimal>> rates, DateTime fin)
+        private void GetTradesAndRates(BinanceClient client, string symbol, TimeSpan span, out List<BinanceInfo> BinanceInfo, DateTime fin)
         {
-            trades = new List<Tuple<DateTime, decimal>>();
-            rates = new List<Tuple<DateTime, decimal>>();
+            BinanceInfo = new List<BinanceInfo>();
             for (int h = 24; --h >= 0;)
             {
                 Log("Loading history " + h);
@@ -137,8 +136,8 @@ namespace BinanceCore
                 var aggTrades = client.GetAggregatedTrades(symbol, startTime: start, endTime: end, limit: 1000);
                 foreach (var t in aggTrades.Data)
                 {
-                    trades.Add(t.Quantity.at(t.TradeTime));
-                    rates.Add(t.Price.at(t.TradeTime));
+                    BinanceInfo info = new BinanceInfo(t.AggregateTradeId, t.TradeTime, symbol, t.Quantity, t.Price);
+                    BinanceInfo.Add(info);
                 }
             }
         }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.DrawingCore.Text;
 using BinanceCore.Entities;
 using System.Windows.Controls;
+using Binance.Net.Objects.Spot.WalletData;
 
 namespace BinanceCore.Services
 {
@@ -137,8 +138,14 @@ namespace BinanceCore.Services
         /// <param name="w">Ширина итоговой картинки</param>
         /// <param name="h">Высота итоговой картинки</param>
         /// <returns></returns>
-        public static Bitmap MakeGraph(string CoinName, DateTime end, TimeSpan len, List<Tuple<DateTime, decimal>> history, List<Tuple<DateTime, decimal>> trades, int w=640, int h=320)
+        public static Bitmap MakeGraph(string CoinName, DateTime end, TimeSpan len, List<BinanceInfo> BinanceInfo, int w=640, int h=320)
         {
+            List<Tuple<DateTime, decimal>> history = new List<Tuple<DateTime, decimal>>();
+            foreach (var item in BinanceInfo)
+            {
+                Tuple<DateTime, decimal> tuple = new Tuple<DateTime, decimal>(item.Time, item.RatePrice);
+                history.Add(tuple);
+            }
             initFOnts();
             var hoursS = "24h";
 
@@ -198,7 +205,7 @@ namespace BinanceCore.Services
             using (var g = Graphics.FromImage(bmp))
             {
                 List<decimal> tradeSums = new List<decimal>();
-                DrawGraph(end, history, trades, max, min, graphH, stepLen, parts, pos, pos2, ref priceAtPos, h, xPad, partW, g, tradeSums);
+                DrawGraph(end, BinanceInfo, max, min, graphH, stepLen, parts, pos, pos2, ref priceAtPos, h, xPad, partW, g, tradeSums);
                 pos = start;
                 var maxTrade = tradeSums.Max();
 
@@ -313,7 +320,7 @@ namespace BinanceCore.Services
 
             return bmp;
         }
-        private static string DrawGraph(DateTime end, List<Tuple<DateTime, decimal>> history, List<Tuple<DateTime, decimal>> trades, decimal max, decimal min, int graphH, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos, int h, int xPad, double partW, Graphics g, List<decimal> tradeSums)
+        private static string DrawGraph(DateTime end, List<BinanceInfo> BinanceInfo, decimal max, decimal min, int graphH, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos, int h, int xPad, double partW, Graphics g, List<decimal> tradeSums)
         {
             double candleW = partW - 2;
 
@@ -324,25 +331,24 @@ namespace BinanceCore.Services
             while (pos < end && n < parts)
             {
                 var inV = priceAtPos;
-                var inRange = history.Where(k => k.Item1 >= pos && k.Item1 < pos.Add(stepLen));
-                var tradesRange = trades.Where(k => k.Item1 >= pos2 && k.Item1 < pos2.Add(stepLen));
-
-                var tradeSum = tradesRange.Select(tr => tr.Item2).Sum();
+                var inRange = BinanceInfo.Where(k => k.Time>= pos && k.Time < pos.Add(stepLen));
+                var tradesRange = BinanceInfo.Where(k => k.Time >= pos2 && k.Time < pos2.Add(stepLen));
+                var tradeSum = tradesRange.Select(tr => tr.TradeQuantity).Sum();
                 tradeSums.Add(tradeSum);
 
                 var outV = priceAtPos;
 
                 if (inRange.Count() > 0)
-                    outV = inRange.Last().Item2;
+                    outV = inRange.Last().RatePrice;
 
 
                 var minV = Math.Min(inV, outV);
                 if (inRange.Count() > 0)
-                    minV = inRange.Select(r => r.Item2).Min();
+                    minV = inRange.Select(r => r.RatePrice).Min();
 
                 var maxV = Math.Max(inV, outV);
                 if (inRange.Count() > 0)
-                    maxV = inRange.Select(r => r.Item2).Max();
+                    maxV = inRange.Select(r => r.RatePrice).Max();
                 var inP = h - ValueToPos(max, min, graphH, inV) - 80;
                 var outP = h - ValueToPos(max, min, graphH, outV) - 80;
                 var minP = h - ValueToPos(max, min, graphH, minV) - 80;

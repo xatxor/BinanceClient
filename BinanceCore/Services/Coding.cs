@@ -7,14 +7,14 @@ namespace BinanceCore.Services
 {
     public static class Coding
     {
-        public static string MakeCode(DateTime end, TimeSpan len, List<Tuple<DateTime, decimal>> history)
+        public static string MakeCode(DateTime end, TimeSpan len, List<BinanceInfo> BinanceInfo)
         {
             var timeShift = 0;
             var start = end.Subtract(len);
             var start2 = start.AddHours(timeShift);
             var end2 = end.AddHours(timeShift);
 
-            var vals = history.Select(hh => hh.Item2);
+            var vals = BinanceInfo.Select(hh => hh.RatePrice);
             var max = vals.Count() > 0 ? vals.Max() : 0;
             var min = vals.Count() > 0 ? vals.Min() : 0;
             var d = max - min;
@@ -40,25 +40,25 @@ namespace BinanceCore.Services
             }
             var pos = start;
             var pos2 = start2;
-            var priceAtPos = history.Count() > 0 ? history.First().Item2 : 0;
+            var priceAtPos = BinanceInfo.Count() > 0 ? BinanceInfo.First().RatePrice : 0;
 
-            LatestCode= MakeCode(end, history, stepLen, parts, pos, pos2, ref priceAtPos);
+            LatestCode= MakeCode(end, BinanceInfo, stepLen, parts, pos, pos2, ref priceAtPos);
             return LatestCode;
         }
 
-        private static string MakeCode(DateTime end, List<Tuple<DateTime, decimal>> history, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos)
+        private static string MakeCode(DateTime end, List<BinanceInfo> BinanceInfo, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos)
         {
             string fractalCode = "";
             int n = 0;
             while (pos < end && n < parts)
             {
                 var inV = priceAtPos;
-                var inRange = history.Where(k => k.Item1 >= pos && k.Item1 < pos.Add(stepLen));
+                var inRange = BinanceInfo.Where(k => k.Time >= pos && k.Time < pos.Add(stepLen));
 
                 var outV = priceAtPos;
 
                 if (inRange.Count() > 0)
-                    outV = inRange.Last().Item2;
+                    outV = inRange.Last().RatePrice;
 
                 string fractalStage = "S";
                 int percent = 0;
