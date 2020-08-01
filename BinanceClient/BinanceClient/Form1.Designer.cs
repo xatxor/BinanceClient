@@ -31,7 +31,6 @@
             this.components = new System.ComponentModel.Container();
             this.AutoUnloadCheckBox = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.TimeoutTextBox = new System.Windows.Forms.TextBox();
             this.UnloadedInfoTextBox = new System.Windows.Forms.TextBox();
@@ -54,11 +53,11 @@
             // 
             this.AutoUnloadCheckBox.AutoSize = true;
             this.AutoUnloadCheckBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.AutoUnloadCheckBox.Location = new System.Drawing.Point(28, 240);
+            this.AutoUnloadCheckBox.Location = new System.Drawing.Point(16, 179);
             this.AutoUnloadCheckBox.Name = "AutoUnloadCheckBox";
-            this.AutoUnloadCheckBox.Size = new System.Drawing.Size(288, 24);
+            this.AutoUnloadCheckBox.Size = new System.Drawing.Size(228, 24);
             this.AutoUnloadCheckBox.TabIndex = 0;
-            this.AutoUnloadCheckBox.Text = "Автоматическая выгрузка данных";
+            this.AutoUnloadCheckBox.Text = "Автоматическая выгрузка";
             this.AutoUnloadCheckBox.UseVisualStyleBackColor = true;
             this.AutoUnloadCheckBox.CheckedChanged += new System.EventHandler(this.AutoUnloadCheckBox_CheckedChanged);
             // 
@@ -66,56 +65,52 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.label1.Location = new System.Drawing.Point(24, 25);
+            this.label1.Location = new System.Drawing.Point(12, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(217, 20);
+            this.label1.Size = new System.Drawing.Size(130, 20);
             this.label1.TabIndex = 3;
-            this.label1.Text = "Начальное время выгрузки";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.label2.Location = new System.Drawing.Point(24, 87);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(205, 20);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "Конечное время выгрузки";
+            this.label1.Text = "Время выгрузки";
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.label3.Location = new System.Drawing.Point(24, 278);
+            this.label3.Location = new System.Drawing.Point(22, 216);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(229, 20);
+            this.label3.Size = new System.Drawing.Size(117, 81);
             this.label3.TabIndex = 7;
-            this.label3.Text = "Длина таймаута (в секундах)";
+            this.label3.Text = "Длина таймаута\r\n(в секундах)";
+            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // TimeoutTextBox
             // 
-            this.TimeoutTextBox.Location = new System.Drawing.Point(28, 301);
+            this.TimeoutTextBox.Location = new System.Drawing.Point(48, 300);
             this.TimeoutTextBox.Name = "TimeoutTextBox";
-            this.TimeoutTextBox.Size = new System.Drawing.Size(239, 20);
+            this.TimeoutTextBox.Size = new System.Drawing.Size(58, 20);
             this.TimeoutTextBox.TabIndex = 8;
             this.TimeoutTextBox.Text = "5";
             // 
             // UnloadedInfoTextBox
             // 
+            this.UnloadedInfoTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.UnloadedInfoTextBox.BackColor = System.Drawing.SystemColors.Window;
-            this.UnloadedInfoTextBox.Location = new System.Drawing.Point(332, 48);
+            this.UnloadedInfoTextBox.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.UnloadedInfoTextBox.Location = new System.Drawing.Point(250, 32);
             this.UnloadedInfoTextBox.Multiline = true;
             this.UnloadedInfoTextBox.Name = "UnloadedInfoTextBox";
             this.UnloadedInfoTextBox.ReadOnly = true;
             this.UnloadedInfoTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.UnloadedInfoTextBox.Size = new System.Drawing.Size(349, 353);
+            this.UnloadedInfoTextBox.Size = new System.Drawing.Size(492, 294);
             this.UnloadedInfoTextBox.TabIndex = 9;
             // 
             // label4
             // 
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.label4.Location = new System.Drawing.Point(328, 25);
+            this.label4.Location = new System.Drawing.Point(246, 9);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(174, 20);
             this.label4.TabIndex = 10;
@@ -124,9 +119,9 @@
             // UnloadButton
             // 
             this.UnloadButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.UnloadButton.Location = new System.Drawing.Point(167, 192);
+            this.UnloadButton.Location = new System.Drawing.Point(145, 94);
             this.UnloadButton.Name = "UnloadButton";
-            this.UnloadButton.Size = new System.Drawing.Size(100, 29);
+            this.UnloadButton.Size = new System.Drawing.Size(95, 29);
             this.UnloadButton.TabIndex = 11;
             this.UnloadButton.Text = "Выгрузить";
             this.UnloadButton.UseVisualStyleBackColor = true;
@@ -135,9 +130,9 @@
             // SymbolsComboBox
             // 
             this.SymbolsComboBox.FormattingEnabled = true;
-            this.SymbolsComboBox.Location = new System.Drawing.Point(28, 165);
+            this.SymbolsComboBox.Location = new System.Drawing.Point(145, 64);
             this.SymbolsComboBox.Name = "SymbolsComboBox";
-            this.SymbolsComboBox.Size = new System.Drawing.Size(239, 21);
+            this.SymbolsComboBox.Size = new System.Drawing.Size(95, 21);
             this.SymbolsComboBox.Sorted = true;
             this.SymbolsComboBox.TabIndex = 12;
             // 
@@ -145,7 +140,7 @@
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.label5.Location = new System.Drawing.Point(24, 142);
+            this.label5.Location = new System.Drawing.Point(12, 62);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(127, 20);
             this.label5.TabIndex = 13;
@@ -163,28 +158,28 @@
             // 
             this.StartTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
             this.StartTime.Format = System.Windows.Forms.DateTimePickerFormat.Time;
-            this.StartTime.Location = new System.Drawing.Point(28, 48);
+            this.StartTime.Location = new System.Drawing.Point(16, 32);
             this.StartTime.Name = "StartTime";
-            this.StartTime.Size = new System.Drawing.Size(239, 23);
+            this.StartTime.Size = new System.Drawing.Size(100, 23);
             this.StartTime.TabIndex = 15;
             // 
             // EndTime
             // 
             this.EndTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
             this.EndTime.Format = System.Windows.Forms.DateTimePickerFormat.Time;
-            this.EndTime.Location = new System.Drawing.Point(28, 110);
+            this.EndTime.Location = new System.Drawing.Point(145, 32);
             this.EndTime.Name = "EndTime";
-            this.EndTime.Size = new System.Drawing.Size(239, 23);
+            this.EndTime.Size = new System.Drawing.Size(95, 23);
             this.EndTime.TabIndex = 16;
             // 
             // AutoUnloadButton
             // 
             this.AutoUnloadButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.AutoUnloadButton.Location = new System.Drawing.Point(28, 336);
+            this.AutoUnloadButton.Location = new System.Drawing.Point(145, 216);
             this.AutoUnloadButton.Name = "AutoUnloadButton";
-            this.AutoUnloadButton.Size = new System.Drawing.Size(239, 29);
+            this.AutoUnloadButton.Size = new System.Drawing.Size(95, 104);
             this.AutoUnloadButton.TabIndex = 17;
-            this.AutoUnloadButton.Text = "Начать автоматическую выгрузку";
+            this.AutoUnloadButton.Text = "Начать авто. выгрузку";
             this.AutoUnloadButton.UseVisualStyleBackColor = true;
             this.AutoUnloadButton.Click += new System.EventHandler(this.AutoUnloadButton_Click);
             // 
@@ -195,7 +190,7 @@
             // FromDBButton
             // 
             this.FromDBButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.FromDBButton.Location = new System.Drawing.Point(28, 192);
+            this.FromDBButton.Location = new System.Drawing.Point(16, 94);
             this.FromDBButton.Name = "FromDBButton";
             this.FromDBButton.Size = new System.Drawing.Size(100, 29);
             this.FromDBButton.TabIndex = 11;
@@ -207,7 +202,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(715, 430);
+            this.ClientSize = new System.Drawing.Size(753, 338);
             this.Controls.Add(this.AutoUnloadButton);
             this.Controls.Add(this.EndTime);
             this.Controls.Add(this.StartTime);
@@ -219,7 +214,6 @@
             this.Controls.Add(this.UnloadedInfoTextBox);
             this.Controls.Add(this.TimeoutTextBox);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.AutoUnloadCheckBox);
             this.Name = "Form1";
@@ -235,7 +229,6 @@
 
         private System.Windows.Forms.CheckBox AutoUnloadCheckBox;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox TimeoutTextBox;
         private System.Windows.Forms.TextBox UnloadedInfoTextBox;

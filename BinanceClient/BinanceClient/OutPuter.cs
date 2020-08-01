@@ -18,7 +18,7 @@ namespace BinanceClient
         {
             StringBuilder sb = new StringBuilder();
             foreach(var info in infos)
-                sb.AppendLine($"at {info.Time} Price:{info.RatePrice.ToString("0000.0000000")}   Volume:{info.TradeQuantity} ");
+                sb.AppendLine($"at {info.Time}   Price:{info.RatePrice.ToString("####0.0000000")}   Volume:{info.TradeQuantity.ToString("####0.0000000")} ");
 
             Log(sb.ToString(), textbox);
         }
