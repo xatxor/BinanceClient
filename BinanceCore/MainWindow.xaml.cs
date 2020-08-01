@@ -43,6 +43,7 @@ namespace BinanceCore
             timer.Elapsed += Timer_Elapsed;
             LoadSymbols();
             LoadDefaultProject();
+            Symbols.Text = "ETHBTC";
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
