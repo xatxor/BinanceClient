@@ -88,9 +88,9 @@
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
             this.label3.Location = new System.Drawing.Point(24, 278);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(222, 20);
+            this.label3.Size = new System.Drawing.Size(229, 20);
             this.label3.TabIndex = 7;
-            this.label3.Text = "Длина таймаута (в минутах)";
+            this.label3.Text = "Длина таймаута (в секундах)";
             // 
             // TimeoutTextBox
             // 
@@ -98,7 +98,7 @@
             this.TimeoutTextBox.Name = "TimeoutTextBox";
             this.TimeoutTextBox.Size = new System.Drawing.Size(239, 20);
             this.TimeoutTextBox.TabIndex = 8;
-            this.TimeoutTextBox.Text = "1";
+            this.TimeoutTextBox.Text = "5";
             // 
             // UnloadedInfoTextBox
             // 

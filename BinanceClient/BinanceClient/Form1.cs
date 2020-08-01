@@ -53,14 +53,9 @@ namespace BinanceClient
                 Log($"Начинаем загрузку {SelectedSymbol} с {StartTime.Value} по {EndTime.Value}");
                 using (var client = new Binance.Net.BinanceClient())
                 {
-                    Log("Данные с сервера получены. Начинаем сохранять...");
-                    repos.AddBinanceInfo(
-                        unloader.GetTradesAndRates(client, SelectedSymbol, StartTime.Value, EndTime.Value)?
-                            .Select(t =>
-                                new BinanceInfo(t.AggregateTradeId, t.TradeTime, SelectedSymbol, Convert.ToInt32(t.Quantity), t.Price)
-                                )
-                        );
-
+                    var tradesAndRates = unloader.GetTradesAndRates(client, SelectedSymbol, StartTime.Value, EndTime.Value);
+                    Log($"Данные с сервера получены ({tradesAndRates.Count()}). Начинаем сохранять...");
+                    SaveTradesAndRates(tradesAndRates);
                     Log("Готово!");
                 }
             }
@@ -89,6 +84,7 @@ namespace BinanceClient
                 else
                 {
                     timer1.Stop();
+                    Timeout = 0;
                     UnloadButton.Enabled = true;
                     AutoUnloadButton.Enabled = false;
                 }
@@ -103,64 +99,82 @@ namespace BinanceClient
         private void AutoUnloadButton_Click(object sender, EventArgs e)
         {
             //1 минута - 60000 миллисекунд
-            timer1.Interval = Convert.ToInt32(TimeoutTextBox.Text) * 60000;
+            timer1.Interval = 1000;
             timer1.Start();
             Log("Поехали!");
         }
-
+        int TimeLimit => Convert.ToInt32(TimeoutTextBox.Text);
+        int timeout = 0;
+        int Timeout
+        {
+            set { timeout = value; Text = $"BinanceClientc {(timeout>0?timeout.ToString():"")}"; }
+            get => timeout;
+        }
         private void timer1_Tick(object sender, EventArgs e)
         {
+            if (++Timeout < TimeLimit)
+                return;
+            timer1.Stop();  //  притормозим таймер, ато не известно, успеем ли принять свежие данные за время интервала
+            Timeout = 0;
+
             Log("Сработал таймер!");
-
-            using (Binance.Net.BinanceClient client = new Binance.Net.BinanceClient())
+            try
             {
-                var info = repos.GetLastElement();
-                DateTime start = info.Time;
-                DateTime end = DateTime.UtcNow;
-                if(start.AddHours(1).CompareTo(end) < 0)
+                using (Binance.Net.BinanceClient client = new Binance.Net.BinanceClient())
                 {
-                    end = start.AddHours(1);
-                }
-                double count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
-                //проверяем, успеет ли unloader загрузить данные сервера меньше чем за интервал таймера
-                //550 - приблительное количество записей, которое успевает прогрузить unloader за одну минуту
-                while (count > timer1.Interval * 550)
-                {
-                    end.AddMinutes(-5);
-                    count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
-                }
-
-                //проверяем, не больше ли 1000 записей в этом промежутке времени
-                while (count > 1000)
-                {
-                    end.AddMinutes(-5);
-                    count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
-                }
-                var symbol = SymbolsComboBox.SelectedItem.ToString();
-                IEnumerable<BinanceAggregatedTrade> tradesAndRates;
-                tradesAndRates = unloader.GetTradesAndRates(client, symbol, start.AddMilliseconds(1), end);
-
-                    Log("Данные с сервера получены. Начинаем сохранять...");
-                if (tradesAndRates != null)
-                {
-                    List<BinanceInfo> listinfo = new List<BinanceInfo>();
-                    foreach (var t in tradesAndRates)
+                    var info = repos.GetLastElement();
+                    DateTime start = info.Time;
+                    DateTime end = DateTime.UtcNow;
+                    if (start.AddHours(1).CompareTo(end) < 0)
                     {
-                        BinanceInfo binanceinfo = new BinanceInfo(t.AggregateTradeId, t.TradeTime, symbol, Convert.ToInt32(t.Quantity), t.Price);
-                        listinfo.Add(binanceinfo);
+                        end = start.AddHours(1);
                     }
-                    repos.AddBinanceInfo(listinfo);
+                    double count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
+                    //проверяем, успеет ли unloader загрузить данные сервера меньше чем за интервал таймера
+                    //550 - приблительное количество записей, которое успевает прогрузить unloader за одну минуту
+                    while (count > timer1.Interval * 550)
+                    {
+                        end.AddMinutes(-5);
+                        count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
+                    }
+
+                    //проверяем, не больше ли 1000 записей в этом промежутке времени
+                    while (count > 1000)
+                    {
+                        end.AddMinutes(-5);
+                        count = unloader.GetTradesAndRates(client, SymbolsComboBox.SelectedItem.ToString(), start, end).Count();
+                    }
+                    var symbol = SymbolsComboBox.SelectedItem.ToString();
+                    IEnumerable<BinanceAggregatedTrade> tradesAndRates;
+                    tradesAndRates = unloader.GetTradesAndRates(client, symbol, start.AddMilliseconds(1), end);
+                    Log($"Данные с сервера получены ({tradesAndRates.Count()}). Начинаем сохранять...");
+                    SaveTradesAndRates(tradesAndRates);
+                    Log("Готово!");
                 }
+            }catch(Exception ex)
+            {
+                Log("EXCEPTION: " + FullMessage(ex));
             }
+            timer1.Start();
+        }
+
+        private void SaveTradesAndRates(IEnumerable<BinanceAggregatedTrade> tradesAndRates)
+        {
+            repos.AddBinanceInfo(tradesAndRates?
+                        .Select(t =>
+                            new BinanceInfo(t.AggregateTradeId, t.TradeTime, SelectedSymbol, t.Quantity, t.Price)
+                            )
+                    );
         }
 
         private void FromDBButton_Click(object sender, EventArgs e)
         {
             try
             {
+
                 var ieinfo = repos.GetRangeOfElementsByTime(StartTime.Value, EndTime.Value, SelectedSymbol);
-                outputer.OutPutBinanceInfoToTextbox($"Записи из БД:\r\n{ieinfo}", UnloadedInfoTextBox);
-                Log($"Итого в БД найдено {ieinfo.Count()} записей за указанный период");
+                outputer.Log($"В БД найдено {ieinfo.Count()} записей:", UnloadedInfoTextBox);
+                outputer.OutPutBinanceInfoToTextbox(ieinfo, UnloadedInfoTextBox);
             }
             catch(Exception ex)
             { Log($"EXCEPTION: {FullMessage(ex)}"); }
