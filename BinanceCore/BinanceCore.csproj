@@ -9,7 +9,9 @@
   <ItemGroup>
     <PackageReference Include="Binance.Net" Version="5.1.7" />
     <PackageReference Include="FreeImage-dotnet-core" Version="4.3.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.6" />
     <PackageReference Include="Nancy" Version="2.0.0" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.2" />
     <PackageReference Include="ZKWeb.System.Drawing" Version="4.0.1" />
   </ItemGroup>
 

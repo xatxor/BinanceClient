@@ -26,6 +26,7 @@ namespace BinanceCore
     /// </summary>
     public partial class MainWindow : Window
     {
+        Repository repos = new Repository();
         BinanceSocketClient socketClient = new BinanceSocketClient();
         int timeout = 30;
         int timePassed = 0;
@@ -112,7 +113,7 @@ namespace BinanceCore
                 List<BinanceInfo> BinanceInfo = new List<BinanceInfo>();
                 DateTime fin = DateTime.UtcNow;
 
-                GetTradesAndRates(client, symbol, span, out BinanceInfo, fin);
+                GetTradesAndRates(client, symbol, out BinanceInfo, fin);
                 Log("History loaded. Drawing...");
 
                 iv.LoadBitmap(Drawing.MakeGraph(symbol, fin, span * 24, BinanceInfo));
@@ -124,22 +125,13 @@ namespace BinanceCore
 
 
 
-        private void GetTradesAndRates(BinanceClient client, string symbol, TimeSpan span, out List<BinanceInfo> BinanceInfo, DateTime fin)
+        private void GetTradesAndRates(BinanceClient client, string symbol, out List<BinanceInfo> BinanceInfo, DateTime fin)
         {
             BinanceInfo = new List<BinanceInfo>();
-            for (int h = 24; --h >= 0;)
-            {
-                Log("Loading history " + h);
-                var end = fin.AddHours(-h);
-                var start = end.AddDays(-span.TotalDays);
-
-                var aggTrades = client.GetAggregatedTrades(symbol, startTime: start, endTime: end, limit: 1000);
-                foreach (var t in aggTrades.Data)
-                {
-                    BinanceInfo info = new BinanceInfo(t.AggregateTradeId, t.TradeTime, symbol, t.Quantity, t.Price);
-                    BinanceInfo.Add(info);
-                }
-            }
+            Log("Loading history ");
+            var tradesAndRates = repos.GetRangeOfElementsByTime(fin.AddDays(-1), fin, symbol);
+            BinanceInfo.AddRange(tradesAndRates);
+            Log("History is loaded");
         }
 
         private void FindFractal_Clicked(object sender, RoutedEventArgs e)
