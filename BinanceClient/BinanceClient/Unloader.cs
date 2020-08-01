@@ -5,20 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Binance.Net;
+using Binance.Net.Objects.Spot.MarketData;
 
 namespace BinanceClient
 {
     public class Unloader
     {
-        public void GetTradesAndRates(Binance.Net.BinanceClient client, string symbol, ref List<Tuple<DateTime, decimal>> trades, ref List<Tuple<DateTime, decimal>> rates, DateTime start, DateTime end)
-        { 
+        public IEnumerable<BinanceAggregatedTrade> GetTradesAndRates(Binance.Net.BinanceClient client, string symbol, DateTime start, DateTime end)
+        {
             var aggTrades = client.GetAggregatedTrades(symbol, startTime: start, endTime: end, limit: 1000);
-            foreach (var t in aggTrades.Data)
-            {
-                trades.Add(new Tuple<DateTime, decimal>(t.TradeTime,t.Quantity));
-                rates.Add(new Tuple<DateTime, decimal>(t.TradeTime, t.Price));
-            }
+            if (aggTrades.Data == null)
+                throw new Exception(aggTrades.Error.Message);
+            return aggTrades.Data;
         }
-
     }
 }
