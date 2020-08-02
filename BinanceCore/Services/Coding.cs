@@ -7,7 +7,7 @@ namespace BinanceCore.Services
 {
     public static class Coding
     {
-        public static string MakeCode(DateTime end, TimeSpan len, List<BinanceInfo> BinanceInfo)
+        public static string MakeCode(DateTime end, TimeSpan len, IEnumerable<BinanceInfo> BinanceInfo)
         {
             var timeShift = 0;
             var start = end.Subtract(len);
@@ -46,7 +46,7 @@ namespace BinanceCore.Services
             return LatestCode;
         }
 
-        private static string MakeCode(DateTime end, List<BinanceInfo> BinanceInfo, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos)
+        private static string MakeCode(DateTime end, IEnumerable<BinanceInfo> BinanceInfo, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos)
         {
             string fractalCode = "";
             int n = 0;

@@ -1,23 +1,18 @@
 ﻿using Binance.Net;
-using Binance.Net.Enums;
 using Binance.Net.Objects.Spot;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Logging;
-using FreeImageAPI;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using FreeImageAPI;
-using System.DrawingCore;
-using System.DrawingCore.Text;
-using System.Windows.Media.Imaging;
 using BinanceCore.Entities;
 using System.Timers;
 using System.Windows.Controls;
-using System.Windows.Threading;
 using BinanceCore.Services;
+
+///  TODO: Пора добавлять следящие ползунки, дающие сигналы торговли
 
 namespace BinanceCore
 {
@@ -30,6 +25,7 @@ namespace BinanceCore
         BinanceSocketClient socketClient = new BinanceSocketClient();
         int timeout = 30;
         int timePassed = 0;
+        BinanceClient client = new BinanceClient();
         public MainWindow()
         {
             InitializeComponent();
@@ -45,6 +41,8 @@ namespace BinanceCore
             LoadSymbols();
             LoadDefaultProject();
             Symbols.Text = "ETHBTC";
+
+
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -57,9 +55,9 @@ namespace BinanceCore
                     Title = "АВТООБНОВЛЕНИЕ...";
                     Graph_Clicked(null, null);
                     FindFractal_Clicked(null, null);
-                    DoEvents();
+                    this.DoEvents();
                     timer.Start();
-                    DoEvents();
+                    this.DoEvents();
                     Title = "Автообновление завершено " + DateTime.Now.ToString();
                 }
                 else
@@ -67,71 +65,55 @@ namespace BinanceCore
             }));
 
         }
-        public static void DoEvents()
-        {
-            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-                                                  new Action(delegate { }));
-        }
-        private void FractalConfig_DeleteRequested(FractalConfiguration sender)
-        {
-            fractalsSP.Children.Remove(sender);
-        }
 
 
         private void LoadSymbols()
         {
-            Log("Loading symbols...");
-            using (var client = new BinanceClient())
-            {
-                // Public
-                var exchangeInfo = client.GetExchangeInfo();
-                List<string> symbolsItems = new List<string>();
-                foreach (var symbol in exchangeInfo.Data.Symbols)
-                {
-                    symbolsItems.Add(symbol.Name);
-                }
-                Symbols.ItemsSource = symbolsItems;
-            }
-            Log("Symbols loaded.");
+            Symbols.ItemsSource = client.GetExchangeInfo().
+                                    Data.Symbols.Select(s=>s.Name);
         }
 
         private void Log(string v)
         {
             Title = v;
             Console.WriteLine(v);
-            DoEvents();
+            this.DoEvents();
         }
 
+        List<BinanceInfo> cache = new List<BinanceInfo>();
+        /// <summary>
+        /// ID последней кэшированной записи бинанса
+        /// </summary>
+        long LastCached => cache.Count() > 0 ? cache.Last().Id : 0;
+        DateTime LastMoment => cache.Count() > 0 ? cache.Last().Time : DateTime.UtcNow.AddDays(-1);
 
         private void Graph_Clicked(object sender, RoutedEventArgs e)
         {
-            using (var client = new BinanceClient())
-            {
-                var symbol = Symbols.SelectedItem.ToString();
-                Log("Loading history...");
-                var span = new TimeSpan(0, 1, 0, 0);
-                List<BinanceInfo> BinanceInfo = new List<BinanceInfo>();
-                DateTime fin = DateTime.UtcNow;
+            var symbol = Symbols.SelectedItem.ToString();
+            Log("Loading history...");
+            var span = new TimeSpan(0, 1, 0, 0);
+            DateTime fin = DateTime.UtcNow;
 
-                GetTradesAndRates(client, symbol, out BinanceInfo, fin);
-                Log("History loaded. Drawing...");
+            var BinanceInfo=GetTradesAndRates(symbol, LastMoment, fin).Where(tr=>tr.Id>LastCached);
+            cache.RemoveAll(r => r.Time < fin.AddDays(-1));//   убираем из кэша старые данные
+            cache.AddRange(BinanceInfo);    // добавляем свежие
 
-                iv.LoadBitmap(Drawing.MakeGraph(symbol, fin, span * 24, BinanceInfo));
+            Log("History loaded. Drawing...");
 
-                var code = Coding.MakeCode(fin, span * 24, BinanceInfo);
-                Log("Image ready. Code: " + code);
-            }
+            iv.LoadBitmap(Drawing.MakeGraph(symbol, fin, span * 24, cache));
+
+            var code = Coding.MakeCode(fin, span * 24, cache);
+            Log("Image ready. Code: " + code);
         }
 
 
 
-        private void GetTradesAndRates(BinanceClient client, string symbol, out List<BinanceInfo> BinanceInfo, DateTime fin)
+        private IEnumerable<BinanceInfo> GetTradesAndRates(string symbol,DateTime start, DateTime fin)
         {
-            BinanceInfo = new List<BinanceInfo>();
-            Log("Loading history ");
-            var tradesAndRates = repos.GetRangeOfElementsByTime(fin.AddDays(-1), fin, symbol);
-            BinanceInfo.AddRange(tradesAndRates);
+            Log($"Loading history {start}...{fin} ({fin.Subtract(start).TotalMinutes} minutes)");
+            var tradesAndRates = repos.GetRangeOfElementsByTime(start, fin, symbol);
             Log("History is loaded");
+            return tradesAndRates;
         }
 
         private void FindFractal_Clicked(object sender, RoutedEventArgs e)
@@ -169,7 +151,7 @@ namespace BinanceCore
                 cfg.Symbol = def.Symbol;                                       //  устанавливаем символ пометки фрактала
             }
 
-            cfg.DeleteRequested += FractalConfig_DeleteRequested;
+            cfg.DeleteRequested += (sender) => { fractalsSP.Children.Remove(sender); };
             fractalsSP.Children.Add(cfg);
             return cfg;
         }
@@ -240,7 +222,8 @@ namespace BinanceCore
 
         private void intervalTB_TextChanged(object sender, TextChangedEventArgs e)
         {
-            intervalTB.TrySaveInt(out timeout);
+            if(!timer.Enabled)
+                intervalTB.TrySaveInt(out timeout);
         }
     }
 }

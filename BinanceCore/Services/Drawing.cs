@@ -138,7 +138,7 @@ namespace BinanceCore.Services
         /// <param name="w">Ширина итоговой картинки</param>
         /// <param name="h">Высота итоговой картинки</param>
         /// <returns></returns>
-        public static Bitmap MakeGraph(string CoinName, DateTime end, TimeSpan len, List<BinanceInfo> BinanceInfo, int w=640, int h=320)
+        public static Bitmap MakeGraph(string CoinName, DateTime end, TimeSpan len, IEnumerable<BinanceInfo> BinanceInfo, int w=640, int h=320)
         {
             List<Tuple<DateTime, decimal>> history = new List<Tuple<DateTime, decimal>>();
             foreach (var item in BinanceInfo)
@@ -320,7 +320,7 @@ namespace BinanceCore.Services
 
             return bmp;
         }
-        private static string DrawGraph(DateTime end, List<BinanceInfo> BinanceInfo, decimal max, decimal min, int graphH, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos, int h, int xPad, double partW, Graphics g, List<decimal> tradeSums)
+        private static string DrawGraph(DateTime end, IEnumerable<BinanceInfo> BinanceInfo, decimal max, decimal min, int graphH, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos, int h, int xPad, double partW, Graphics g, List<decimal> tradeSums)
         {
             double candleW = partW - 2;
 

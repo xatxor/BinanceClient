@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.DrawingCore;
 using System.IO;
-using System.Text;
+using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace BinanceCore
 {
@@ -65,6 +64,12 @@ namespace BinanceCore
                 input.Background = System.Windows.Media.Brushes.Pink;
             else
                 input.Background = System.Windows.Media.Brushes.White;
+        }
+
+        public static void DoEvents(this Window w)
+        {
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+                                                  new Action(delegate { }));
         }
 
     }
