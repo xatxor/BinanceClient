@@ -57,16 +57,16 @@ namespace BinanceCore.Controls
                 }
                 if (basePrice + range < newPrice)
                 {
-                    GotRise(this);
-                    Mode = Mode.WAIT_FALL;
+                    LostFall(this);
+                    BasePrice = newPrice;
                 }
             }
             else
             {
                 if (basePrice + range < newPrice)
                 {
-                    LostFall(this);
-                    BasePrice = newPrice;
+                    GotRise(this);
+                    Mode = Mode.WAIT_FALL;
                 }
                 if (basePrice - range > newPrice)
                 {

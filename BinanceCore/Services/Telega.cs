@@ -53,7 +53,7 @@ namespace BinanceCore.Services
         private void OnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
         }
-
+        /// TODO: Добавить возможность отправки изображений
 
         async internal Task<int> Message(string v, int from)
         {
