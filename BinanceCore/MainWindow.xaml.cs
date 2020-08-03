@@ -87,7 +87,7 @@ namespace BinanceCore
                     timer.Start();
                     this.DoEvents();
                     Title = "Автообновление завершено " + DateTime.Now.ToString();
-                    followA.PriceUpdate(LastCached);
+                    followA.PriceUpdate(LastPrice);
                 }
                 else
                     Title = $"Timeout: {(timeout-timePassed)}";

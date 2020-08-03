@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
         <Button x:Name="modeB" Content="Жду падения"/>
         <CheckBox x:Name="activeCB" Content="Активен" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-        <Button Content="Базовый уровень" Grid.Row="1"/>
+        <Button Content="Базовый уровень" Grid.Row="1" Click="BasePriceB_Click"/>
         <TextBox x:Name="baseTB" Text="100" Grid.Row="1" Grid.Column="1"/>
         <Label Content="Размах" Grid.Row="2"/>
         <TextBox x:Name="rangeTB" Text="10" Grid.Row="2" Grid.Column="1"/>

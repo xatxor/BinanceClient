@@ -35,7 +35,7 @@ namespace BinanceCore.Controls
         public decimal BasePrice
         {
             get => basePrice;
-            set { basePrice = value; }
+            set { basePrice = value; baseTB.Text = basePrice.ToString(); }
         }
 
         public Mode mode;
@@ -44,9 +44,10 @@ namespace BinanceCore.Controls
             get => mode;
             set { mode = value; modeB.Content=mode==Mode.WAIT_FALL?"жду падения":"жду роста"; }
         }
-
+        decimal latestPrice = 0;
         public void PriceUpdate(decimal newPrice)
         {
+            latestPrice = newPrice;
             if (Mode == Mode.WAIT_FALL)
             {
                 if (basePrice - range > newPrice)
@@ -65,12 +66,12 @@ namespace BinanceCore.Controls
                 if (basePrice + range < newPrice)
                 {
                     LostFall(this);
-                    basePrice = newPrice;
+                    BasePrice = newPrice;
                 }
                 if (basePrice - range > newPrice)
                 {
                     LostRise(this);
-                    basePrice = newPrice;
+                    BasePrice = newPrice;
                 }
             }
 
@@ -84,6 +85,10 @@ namespace BinanceCore.Controls
             modeB.Click += (a, b) => Mode = Mode == Mode.WAIT_FALL ? Mode.WAIT_RISE : Mode.WAIT_FALL;
         }
 
+        private void BasePriceB_Click(object sender, RoutedEventArgs e)
+        {
+            BasePrice = latestPrice;
+        }
     }
     public enum Mode { WAIT_RISE, WAIT_FALL };
 }
