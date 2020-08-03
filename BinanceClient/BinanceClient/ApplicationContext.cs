@@ -11,7 +11,7 @@ namespace BinanceClient
     class ApplicationContext : DbContext
     {
         public DbSet<BinanceInfo> BinanceInfo { get; set; }
-
+        public DbSet<BinanceInfoShort> BinanceInfoShort { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseMySql("server=116.203.82.48;UserId=binance;Password=binance;database=binance;");
