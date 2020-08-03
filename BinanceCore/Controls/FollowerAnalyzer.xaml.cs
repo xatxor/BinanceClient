@@ -21,6 +21,8 @@ namespace BinanceCore.Controls
         public delegate void FollowEventDgt(FollowerAnalyzer sender);
         public event FollowEventDgt GotFall;
         public event FollowEventDgt GotRise;
+        public event FollowEventDgt LostFall;
+        public event FollowEventDgt LostRise;
 
         decimal range = 0;
         public decimal Range
@@ -45,16 +47,33 @@ namespace BinanceCore.Controls
 
         public void PriceUpdate(decimal newPrice)
         {
-            if (basePrice - range < newPrice)
+            if (Mode == Mode.WAIT_FALL)
             {
-                GotFall(this);
-                Mode = Mode.WAIT_RISE;
+                if (basePrice - range > newPrice)
+                {
+                    GotFall(this);
+                    Mode = Mode.WAIT_RISE;
+                }
+                if (basePrice + range < newPrice)
+                {
+                    GotRise(this);
+                    Mode = Mode.WAIT_FALL;
+                }
             }
-            if (range + range < newPrice)
+            else
             {
-                GotRise(this);
-                Mode = Mode.WAIT_FALL;
+                if (basePrice + range < newPrice)
+                {
+                    LostFall(this);
+                    basePrice = newPrice;
+                }
+                if (basePrice - range > newPrice)
+                {
+                    LostRise(this);
+                    basePrice = newPrice;
+                }
             }
+
         }
 
         public FollowerAnalyzer()

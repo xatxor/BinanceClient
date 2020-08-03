@@ -7,19 +7,16 @@ namespace BinanceCore
 {
     class Repository
     {
-        public IEnumerable<BinanceInfo> GetRangeOfElementsByTime(DateTime time1, DateTime time2, string symbol)
+        public IEnumerable<BinanceInfo> GetRangeOfElementsByTime(DateTime time1, DateTime time2, string symbol, bool shortData)
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                var ieshortinfo = context.BinanceInfoShort.Where(e => (e.Time>time1 && e.Time<time2 && e.Symbol == symbol)).ToList();
-                List<BinanceInfo> result = new List<BinanceInfo>();
-                foreach (var item in ieshortinfo)
-                {
-                    var info = new BinanceInfo(item.Time, item.Symbol, item.TradeQuantity, item.RatePrice);
-                    result.Add(info);
-                }
-
-                return result;
+                if (shortData)
+                    return context.BinanceInfoShort.Where(e => (e.Time > time1 && e.Time < time2 && e.Symbol == symbol))
+                            .Select(bis =>
+                                new BinanceInfo(bis.Time, bis.Symbol, bis.TradeQuantity, bis.RatePrice, bis.Id)).ToArray();
+                else
+                    return context.BinanceInfo.Where(e => (e.Time > time1 && e.Time < time2 && e.Symbol == symbol)).ToArray();
             }
         }
     }

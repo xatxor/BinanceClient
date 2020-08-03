@@ -44,8 +44,34 @@ namespace BinanceCore
             LoadDefaultProject();
             Symbols.Text = "ETHBTC";
 
+            followA.GotFall += FollowA_GotFall;
+            followA.GotRise += FollowA_GotRise;
+            followA.LostFall += FollowA_LostFall;
+            followA.LostRise += FollowA_LostRise;
+
             Task.Run(async () => await telega.MessageMaster("BinanceCore v.0.1 started."));
         }
+        #region Реакции на Follower
+        private async void FollowA_LostRise(Controls.FollowerAnalyzer sender)
+        {
+            await telega.MessageMaster("Не дождались роста - растёт! "+LastPrice);
+        }
+
+        private async void FollowA_LostFall(Controls.FollowerAnalyzer sender)
+        {
+            await telega.MessageMaster("Не дождались падения - растёт! " + LastPrice);
+        }
+
+        private async void FollowA_GotRise(Controls.FollowerAnalyzer sender)
+        {
+            await telega.MessageMaster("Курс вырос! Продавай. " + LastPrice);
+        }
+
+        private async void FollowA_GotFall(Controls.FollowerAnalyzer sender)
+        {
+            await telega.MessageMaster("Курс упал! Покупай. " + LastPrice);
+        }
+        #endregion
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -61,6 +87,7 @@ namespace BinanceCore
                     timer.Start();
                     this.DoEvents();
                     Title = "Автообновление завершено " + DateTime.Now.ToString();
+                    followA.PriceUpdate(LastCached);
                 }
                 else
                     intervalTB.Text = (timeout-timePassed).ToString();
@@ -87,6 +114,7 @@ namespace BinanceCore
         /// ID последней кэшированной записи бинанса
         /// </summary>
         long LastCached => cache.Count() > 0 ? cache.Last().Id : 0;
+        decimal LastPrice => cache.Count() > 0 ? cache.Last().RatePrice : 0;
         DateTime LastMoment => cache.Count() > 0 ? cache.Last().Time : DateTime.UtcNow.AddDays(-1);
 
         private void Graph_Clicked(object sender, RoutedEventArgs e)
@@ -113,7 +141,7 @@ namespace BinanceCore
         private IEnumerable<BinanceInfo> GetTradesAndRates(string symbol,DateTime start, DateTime fin)
         {
             Log($"Loading history {start}...{fin} ({fin.Subtract(start).TotalMinutes} minutes)");
-            var tradesAndRates = repos.GetRangeOfElementsByTime(start, fin, symbol);
+            var tradesAndRates = repos.GetRangeOfElementsByTime(start, fin, symbol,shortCB.IsChecked==true);
             Log("History is loaded");
             return tradesAndRates;
         }
