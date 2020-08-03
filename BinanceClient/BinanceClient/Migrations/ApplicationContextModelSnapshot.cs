@@ -39,6 +39,29 @@ namespace BinanceClient.Migrations
 
                     b.ToTable("BinanceInfo");
                 });
+
+            modelBuilder.Entity("BinanceClient.BinanceInfoShort", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("RatePrice")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Symbol")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("TradeQuantity")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BinanceInfoShort");
+                });
 #pragma warning restore 612, 618
         }
     }

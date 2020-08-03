@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace BinanceClient
+namespace BinanceCore
 {
-    public class BinanceInfo
+    public class BinanceInfoShort
     {
         public long Id { get; set; }
         public DateTime Time { get; set; }
@@ -14,9 +12,8 @@ namespace BinanceClient
         public decimal TradeQuantity { get; set; }
         public decimal RatePrice { get; set; }
 
-        public BinanceInfo(long id, DateTime time, string symbol, decimal tradeQuantity, decimal ratePrice)
+        public BinanceInfoShort(DateTime time, string symbol, decimal tradeQuantity, decimal ratePrice)
         {
-            Id = id;
             Time = time;
             Symbol = symbol;
             TradeQuantity = tradeQuantity;

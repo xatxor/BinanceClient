@@ -11,10 +11,8 @@ namespace BinanceCore
         public string Symbol { get; set; }
         public decimal TradeQuantity { get; set; }
         public decimal RatePrice { get; set; }
-
-        public BinanceInfo(long id, DateTime time, string symbol, decimal tradeQuantity, decimal ratePrice)
+        public BinanceInfo(DateTime time, string symbol, decimal tradeQuantity, decimal ratePrice)
         {
-            Id = id;
             Time = time;
             Symbol = symbol;
             TradeQuantity = tradeQuantity;

@@ -32,7 +32,7 @@ namespace BinanceClient
                 var currentinfo = ieinfo.Where(u => ids.Contains(u.Id));
                 var sum = currentinfo.Select(e => e.TradeQuantity).Sum();
                 var lastelement = currentinfo.Last();
-                var info = new BinanceInfo(lastelement.Time, lastelement.Symbol, sum, lastelement.RatePrice);
+                var info = new BinanceInfoShort(lastelement.Time, lastelement.Symbol, sum, lastelement.RatePrice);
                 context.BinanceInfo.AddRange(currentinfo);
                 context.BinanceInfoShort.Add(info);
                 context.SaveChanges();

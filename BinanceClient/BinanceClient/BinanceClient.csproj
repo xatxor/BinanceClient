@@ -256,6 +256,7 @@
   <ItemGroup>
     <Compile Include="ApplicationContext.cs" />
     <Compile Include="BinanceInfo.cs" />
+    <Compile Include="BinanceInfoShort.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
