@@ -66,6 +66,20 @@ namespace BinanceCore
                 input.Background = System.Windows.Media.Brushes.White;
         }
 
+        /// <summary>
+        /// Пытается загрузить целое число из строки текстбокса
+        /// и подсвечивает текстбокс красным если строка не парсится
+        /// </summary>
+        /// <param name="input">текстбокс</param>
+        /// <param name="output">приёмник числа</param>
+        public static void TrySaveDecimal(this TextBox input, out decimal output)
+        {
+            if (!decimal.TryParse(input.Text, out output))
+                input.Background = System.Windows.Media.Brushes.Pink;
+            else
+                input.Background = System.Windows.Media.Brushes.White;
+        }
+
         public static void DoEvents(this Window w)
         {
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,

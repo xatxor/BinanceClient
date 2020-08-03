@@ -11,6 +11,7 @@ using BinanceCore.Entities;
 using System.Timers;
 using System.Windows.Controls;
 using BinanceCore.Services;
+using System.Threading.Tasks;
 
 ///  TODO: Пора добавлять следящие ползунки, дающие сигналы торговли
 
@@ -26,6 +27,7 @@ namespace BinanceCore
         int timeout = 30;
         int timePassed = 0;
         BinanceClient client = new BinanceClient();
+        Telega telega = new Telega("1294746661:AAGeFjeIBPTvG2pUhcdflPD4Nc_pj8ExdXI", 109159596);
         public MainWindow()
         {
             InitializeComponent();
@@ -42,7 +44,7 @@ namespace BinanceCore
             LoadDefaultProject();
             Symbols.Text = "ETHBTC";
 
-
+            Task.Run(async () => await telega.MessageMaster("BinanceCore v.0.1 started."));
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
