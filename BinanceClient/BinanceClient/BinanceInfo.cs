@@ -22,5 +22,12 @@ namespace BinanceClient
             TradeQuantity = tradeQuantity;
             RatePrice = ratePrice;
         }
+        public BinanceInfo(DateTime time, string symbol, decimal tradeQuantity, decimal ratePrice)
+        {
+            Time = time;
+            Symbol = symbol;
+            TradeQuantity = tradeQuantity;
+            RatePrice = ratePrice;
+        }
     }
 }

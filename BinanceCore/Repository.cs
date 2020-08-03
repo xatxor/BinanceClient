@@ -11,7 +11,7 @@ namespace BinanceCore
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                var result = context.BinanceInfo.Where(e => (e.Time>time1 && e.Time<time2 && e.Symbol == symbol)).ToList();
+                var result = context.BinanceInfoShort.Where(e => (e.Time>time1 && e.Time<time2 && e.Symbol == symbol)).ToList();
                 return result;
             }
         }
