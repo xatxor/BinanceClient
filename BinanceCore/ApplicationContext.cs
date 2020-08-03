@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BinanceCore.Services;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore;
 
-namespace BinanceClient
+namespace BinanceCore
 {
     class ApplicationContext : DbContext
     {
@@ -14,7 +15,7 @@ namespace BinanceClient
         public DbSet<BinanceInfoShort> BinanceInfoShort { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySql("server=116.203.82.48;UserId=binance;Password=binance;database=binance;");
+            optionsBuilder.UseMySql("server=116.203.82.48;UserId=binance;Password=binance;database=binance;").AddInterceptors(new HintCommandInterceptor());
         }
     }
 }

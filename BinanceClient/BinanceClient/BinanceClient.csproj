@@ -256,6 +256,7 @@
   <ItemGroup>
     <Compile Include="ApplicationContext.cs" />
     <Compile Include="BinanceInfo.cs" />
+    <Compile Include="BinanceInfoShort.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -269,6 +270,10 @@
     <Compile Include="Migrations\20200801113526_quantity-fix.cs" />
     <Compile Include="Migrations\20200801113526_quantity-fix.designer.cs">
       <DependentUpon>20200801113526_quantity-fix.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20200803213420_TableBinanceInfoShort.cs" />
+    <Compile Include="Migrations\20200803213420_TableBinanceInfoShort.designer.cs">
+      <DependentUpon>20200803213420_TableBinanceInfoShort.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\ApplicationContextModelSnapshot.cs" />
     <Compile Include="OutPuter.cs" />

@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="BinanceCore.Segment"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BinanceCore"
+             mc:Ignorable="d" 
+             d:DesignHeight="98" d:DesignWidth="54">
+    <Grid>
+        <TextBox x:Name="maxDTB" HorizontalAlignment="Stretch" Height="22" Text="100" VerticalAlignment="Top" FontSize="16" FontFamily="Arial" TextChanged="maxDTB_TextChanged" />
+        <Canvas Margin="0 22">
+            <Path Fill="Red" Stroke="Black">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathGeometry.Figures>
+                            <PathFigureCollection>
+                                <PathFigure x:Name="pathStart" IsClosed="True" StartPoint="0,10">
+                                    <PathFigure.Segments>
+                                        <PathSegmentCollection>
+                                            <LineSegment x:Name="pathP2" Point="54,40"/>
+                                            <LineSegment x:Name="pathP3" Point="54,50"/>
+                                            <LineSegment x:Name="pathP4" Point="0,40"/>
+                                        </PathSegmentCollection>
+                                    </PathFigure.Segments>
+                                </PathFigure>
+                            </PathFigureCollection>
+                        </PathGeometry.Figures>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+        </Canvas>
+        <Button Margin="0 22" x:Name="graphB" Content="▬" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="20" Opacity="0.4" Click="graphB_Click"/>
+        <TextBox x:Name="minDTB" HorizontalAlignment="Stretch" Height="22" Text="100" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="16" TextChanged="minDTB_TextChanged" />
+
+    </Grid>
+</UserControl>
