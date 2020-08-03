@@ -90,7 +90,7 @@ namespace BinanceCore
                     followA.PriceUpdate(LastCached);
                 }
                 else
-                    intervalTB.Text = (timeout-timePassed).ToString();
+                    Title = $"Timeout: {(timeout-timePassed)}";
             }));
 
         }
@@ -252,8 +252,7 @@ namespace BinanceCore
 
         private void intervalTB_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if(!timer.Enabled)
-                intervalTB.TrySaveInt(out timeout);
+            intervalTB.TrySaveInt(out timeout);
         }
     }
 }
