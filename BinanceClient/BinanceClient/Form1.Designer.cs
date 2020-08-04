@@ -45,6 +45,7 @@
             this.AutoUnloadButton = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.FromDBButton = new System.Windows.Forms.Button();
+            this.fullCB = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.binanceClientBindingSource1)).BeginInit();
             this.SuspendLayout();
@@ -198,11 +199,23 @@
             this.FromDBButton.UseVisualStyleBackColor = true;
             this.FromDBButton.Click += new System.EventHandler(this.FromDBButton_Click);
             // 
+            // fullCB
+            // 
+            this.fullCB.AutoSize = true;
+            this.fullCB.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.fullCB.Location = new System.Drawing.Point(16, 147);
+            this.fullCB.Name = "fullCB";
+            this.fullCB.Size = new System.Drawing.Size(151, 24);
+            this.fullCB.TabIndex = 18;
+            this.fullCB.Text = "Полные Данные";
+            this.fullCB.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(753, 338);
+            this.Controls.Add(this.fullCB);
             this.Controls.Add(this.AutoUnloadButton);
             this.Controls.Add(this.EndTime);
             this.Controls.Add(this.StartTime);
@@ -243,6 +256,7 @@
         private System.Windows.Forms.Button AutoUnloadButton;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Button FromDBButton;
+        private System.Windows.Forms.CheckBox fullCB;
     }
 }
 

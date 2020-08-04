@@ -46,6 +46,9 @@
                     </TransformGroup>
                 </CheckBox.RenderTransform>
             </CheckBox>
+            <Controls:Balance x:Name="balance"  Height="77" Background="LightGray"/>
+            <Button Content="Sell BTC" Click="SellBTCClicked"/>
+            <Button Content="Buy BTC" Click="BuyBTCClicked"/>
             <!--            <Button Content="Stop"  Click="Button_Click_1" />
             <Button Content="Go" Click="Button_Click"/> -->
         </StackPanel>

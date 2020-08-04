@@ -12,6 +12,8 @@ using System.Timers;
 using System.Windows.Controls;
 using BinanceCore.Services;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Objects;
+using Binance.Net.Objects.Spot.SpotData;
 
 ///  TODO: Пора добавлять следящие ползунки, дающие сигналы торговли
 
@@ -26,50 +28,79 @@ namespace BinanceCore
         BinanceSocketClient socketClient = new BinanceSocketClient();
         int timeout = 30;
         int timePassed = 0;
-        BinanceClient client = new BinanceClient();
+        BinanceClient client = null;
         Telega telega = new Telega("1294746661:AAGeFjeIBPTvG2pUhcdflPD4Nc_pj8ExdXI", 109159596);
         public MainWindow()
         {
             InitializeComponent();
-
             BinanceClient.SetDefaultOptions(new BinanceClientOptions()
             {
                 ApiCredentials = new ApiCredentials("Ir1QoGFgAuLJpPnqp6z9x6wjEHinmy9yTNye46luxfKZEynU71YQDklbmIF9dWgT", "1ZKZaK4kWgtWcHo8KjKbWqCX1i7Ds2OBXK0QwfuQby0q6NGeFgGIG4soWAWwirkB"),
                 LogVerbosity = LogVerbosity.Debug,
                 LogWriters = new List<TextWriter> { Console.Out }
             });
+            BinanceSocketClient.SetDefaultOptions(new BinanceSocketClientOptions()
+            {
+                ApiCredentials = new ApiCredentials("Ir1QoGFgAuLJpPnqp6z9x6wjEHinmy9yTNye46luxfKZEynU71YQDklbmIF9dWgT", "1ZKZaK4kWgtWcHo8KjKbWqCX1i7Ds2OBXK0QwfuQby0q6NGeFgGIG4soWAWwirkB"),
+                LogVerbosity = LogVerbosity.Debug,
+                LogWriters = new List<TextWriter> { Console.Out }
+            });
+            client = new BinanceClient();
+
 
             timer.Elapsed += Timer_Elapsed;
             LoadSymbols();
             LoadDefaultProject();
-            Symbols.Text = "ETHBTC";
+            Symbols.Text = "BTCUSDT";
 
             followA.GotFall += FollowA_GotFall;
             followA.GotRise += FollowA_GotRise;
             followA.LostFall += FollowA_LostFall;
             followA.LostRise += FollowA_LostRise;
 
+    
+            balance.UpdateBalance(client);
+
             Task.Run(async () => await telega.MessageMaster("BinanceCore v.0.1 started."));
+        }
+
+        private decimal GetBalance(string token)
+        {
+            var info = client.GetAccountInfo();
+            return info.Data.Balances.Where(b => b.Asset == token).Single().Free;
         }
         #region Реакции на Follower
         private async void FollowA_LostRise(Controls.FollowerAnalyzer sender)
         {
-            await telega.MessageMaster("Не дождались роста - растёт! "+LastPrice);
+            await telega.MessageMaster("Не дождались роста - падает! Может продать?.. курс по паре: " + LastPriceTrimmed);
         }
+
+        private string LastPriceTrimmed=>
+            LastPrice.ToString().TrimEnd('0');
 
         private async void FollowA_LostFall(Controls.FollowerAnalyzer sender)
         {
-            await telega.MessageMaster("Не дождались падения - растёт! " + LastPrice);
+            await telega.MessageMaster("Не дождались падения - растёт! Может купить?.. курс по паре: " + LastPriceTrimmed);
         }
 
         private async void FollowA_GotRise(Controls.FollowerAnalyzer sender)
         {
-            await telega.MessageMaster("Курс вырос! Продавай. " + LastPrice);
+            balance.UpdateBalance();
+            await telega.MessageMaster("Курс вырос! Продавай. " + LastPriceTrimmed+"\nБудем ждать падения и купим снова.\n" + balance.balInfo);
+            SellBTCClicked(null, null);
+            System.Threading.Thread.Sleep(1000);
+            balance.UpdateBalance();
+            await telega.MessageMaster("Тепень у нас\n" + balance.balInfo);
         }
 
         private async void FollowA_GotFall(Controls.FollowerAnalyzer sender)
         {
-            await telega.MessageMaster("Курс упал! Покупай. " + LastPrice);
+            balance.UpdateBalance();
+            await telega.MessageMaster("Курс упал! Покупай. " + LastPriceTrimmed + "\nБудем ждать роста и продадим.\n"+balance.balInfo);
+            BuyBTCClicked(null, null);
+            System.Threading.Thread.Sleep(1000);
+            balance.UpdateBalance();
+            await telega.MessageMaster("Тепень у нас\n" + balance.balInfo);
         }
         #endregion
 
@@ -87,7 +118,9 @@ namespace BinanceCore
                     timer.Start();
                     this.DoEvents();
                     Title = "Автообновление завершено " + DateTime.Now.ToString();
+                    FindFractal_Clicked(null, null);
                     followA.PriceUpdate(LastPrice);
+                    balance.UpdateBalance();
                 }
                 else
                     Title = $"Timeout: {(timeout-timePassed)}";
@@ -253,6 +286,36 @@ namespace BinanceCore
         private void intervalTB_TextChanged(object sender, TextChangedEventArgs e)
         {
             intervalTB.TrySaveInt(out timeout);
+        }
+
+        private void SellBTCClicked(object sender, RoutedEventArgs e)
+        {
+            var bal = GetBalance("BTC");
+            bal = ((int)(bal * 10000)) / 10000M;
+
+            var res=client.PlaceOrder(  "BTCUSDT",                                              //  Биткоин
+                                Binance.Net.Enums.OrderSide.Sell,                   //  продаём
+                                Binance.Net.Enums.OrderType.Market,
+                                bal);    //  по доступной цене
+            if (res.Data == null)
+                telega.MessageMaster($"Не могу продать {bal} BTC");
+            Console.Write(res.ToString());
+        }
+
+        private void BuyBTCClicked(object sender, RoutedEventArgs e)
+        {
+            var bal = GetBalance("USDT");
+            var will = ((int)(1000*bal / LastPrice))/1000M;
+
+            var res = client.PlaceOrder("BTCUSDT",                                              //  Биткоин
+                                Binance.Net.Enums.OrderSide.Buy,                   //  продаём
+                                Binance.Net.Enums.OrderType.Market,
+                                will);    //  по доступной цене
+            if (res.Data == null)
+                telega.MessageMaster($"Не могу купить {bal} BTC");
+
+            Console.Write(res.ToString());
+
         }
     }
 }

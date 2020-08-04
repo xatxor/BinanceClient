@@ -54,7 +54,9 @@ namespace BinanceCore.Controls
                 {
                     GotFall(this);
                     Mode = Mode.WAIT_RISE;
+                    BasePrice = newPrice;
                 }
+                else
                 if (basePrice + range < newPrice)
                 {
                     LostFall(this);
@@ -67,7 +69,9 @@ namespace BinanceCore.Controls
                 {
                     GotRise(this);
                     Mode = Mode.WAIT_FALL;
+                    BasePrice = newPrice;
                 }
+                else
                 if (basePrice - range > newPrice)
                 {
                     LostRise(this);
