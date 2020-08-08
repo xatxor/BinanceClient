@@ -55,7 +55,7 @@ namespace BinanceCore.Services
         }
 
 
-        async internal Task<int> Message(string v, int from)
+        async internal Task<int> TextMessage(string v, int from)
         {
             try
             {
@@ -69,9 +69,29 @@ namespace BinanceCore.Services
             }
         }
 
-        async internal Task<int> MessageMaster(string v)
+        async internal Task<int> PhotoMessage(string photopath, int from)
         {
-            return await Message(v,_master);
+            try
+            {
+                var sentMsg = await _bot.SendPhotoAsync(from, photopath);
+                UpdateLastMessageID(sentMsg);
+                return sentMsg.MessageId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return 0;
+            }
+        }
+
+        async internal Task<int> TextMessageMaster(string v)
+        {
+            return await TextMessage(v,_master);
+        }
+
+        async internal Task<int> PhotoMessageMaster(string photopath)
+        {
+            return await PhotoMessage(photopath, _master);
         }
 
         private void UpdateLastMessageID(Message sentMsg)
