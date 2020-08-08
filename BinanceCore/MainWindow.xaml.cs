@@ -57,11 +57,16 @@ namespace BinanceCore
             followA.GotRise += FollowA_GotRise;
             followA.LostFall += FollowA_LostFall;
             followA.LostRise += FollowA_LostRise;
-
+            followA.LogMsg += FollowA_LogMsg;
     
             balance.UpdateBalance(client);
 
             Task.Run(async () => await telega.MessageMaster("BinanceCore v.0.1 started."));
+        }
+
+        private async void FollowA_LogMsg(Controls.FollowerAnalyzer sender, string msg)
+        {
+            await telega.MessageMaster($"<i>{msg}</i>");
         }
 
         private decimal GetBalance(string token)
@@ -70,17 +75,33 @@ namespace BinanceCore
             return info.Data.Balances.Where(b => b.Asset == token).Single().Free;
         }
         #region Реакции на Follower
+        DateTime lastAlertTime = DateTime.MinValue;
+        TimeSpan alertInterval = new TimeSpan(0, 3, 0);
         private async void FollowA_LostRise(Controls.FollowerAnalyzer sender)
         {
-            await telega.MessageMaster("Не дождались роста - падает! Может продать?.. курс по паре: " + LastPriceTrimmed);
+            await Alert("Не дождались роста - падает! Может продать?.. курс по паре: " + LastPriceTrimmed);
         }
 
         private string LastPriceTrimmed=>
             LastPrice.ToString().TrimEnd('0');
 
+        /// <summary>
+        /// Отправляет сообщения, но блокирует отправку слишком часто. 
+        /// Не чаще alertInterval срабатывает отправка
+        /// </summary>
+        /// <param name="msg">сообщение</param>
+        /// <returns>асинхронная задача по отправке сообщения</returns>
+        private async Task Alert(string msg)
+        {
+            if (DateTime.Now.Subtract(lastAlertTime) > alertInterval)
+            {
+                await telega.MessageMaster(msg);
+                lastAlertTime = DateTime.Now;
+            }
+        }
         private async void FollowA_LostFall(Controls.FollowerAnalyzer sender)
         {
-            await telega.MessageMaster("Не дождались падения - растёт! Может купить?.. курс по паре: " + LastPriceTrimmed);
+            await Alert("Не дождались падения - растёт! Может купить?.. курс по паре: " + LastPriceTrimmed);
         }
 
         private async void FollowA_GotRise(Controls.FollowerAnalyzer sender)
@@ -90,7 +111,7 @@ namespace BinanceCore
             SellBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.MessageMaster("Тепень у нас\n" + balance.balInfo);
+            await telega.MessageMaster("Теперь у нас\n" + balance.balInfo);
         }
 
         private async void FollowA_GotFall(Controls.FollowerAnalyzer sender)
@@ -100,7 +121,7 @@ namespace BinanceCore
             BuyBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.MessageMaster("Тепень у нас\n" + balance.balInfo);
+            await telega.MessageMaster("Теперь у нас\n" + balance.balInfo);
         }
         #endregion
 

@@ -29,11 +29,15 @@ namespace BinanceCore.Controls
         public string balInfo => balanceTB.Text;
         public void UpdateBalance(BinanceClient _client=null)
         {
-            if (_client != null) client = _client;
-            var btc=GetBalance("BTC").ToString().TrimEnd('0');
-            var eth = GetBalance("ETH").ToString().TrimEnd('0');
-            var usdt = GetBalance("USDT").ToString().TrimEnd('0');
-            balanceTB.Text = $"BTC: {btc}\nETH: {eth}\nUSDT: {usdt}";
+            try
+            {
+                if (_client != null) client = _client;
+                var btc = GetBalance("BTC").ToString().TrimEnd('0');
+                var eth = GetBalance("ETH").ToString().TrimEnd('0');
+                var usdt = GetBalance("USDT").ToString().TrimEnd('0');
+                balanceTB.Text = $"BTC: {btc}\nETH: {eth}\nUSDT: {usdt}";
+            }
+            catch { }
         }
         private decimal GetBalance(string token)
         {
