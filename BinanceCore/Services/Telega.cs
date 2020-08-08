@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Navigation;
 using Telegram.Bot.Types;
 
 namespace BinanceCore.Services
@@ -69,11 +70,11 @@ namespace BinanceCore.Services
             }
         }
 
-        async internal Task<int> PhotoMessage(string photopath, int from)
+        async internal Task<int> PhotoMessage(string photopath, int from, string caption = null)
         {
             try
             {
-                var sentMsg = await _bot.SendPhotoAsync(from, photopath);
+                var sentMsg = await _bot.SendPhotoAsync(from, photopath, caption);
                 UpdateLastMessageID(sentMsg);
                 return sentMsg.MessageId;
             }
@@ -89,9 +90,9 @@ namespace BinanceCore.Services
             return await TextMessage(v,_master);
         }
 
-        async internal Task<int> PhotoMessageMaster(string photopath)
+        async internal Task<int> PhotoMessageMaster(string photopath, string caption = null)
         {
-            return await PhotoMessage(photopath, _master);
+            return await PhotoMessage(photopath, _master, caption);
         }
 
         private void UpdateLastMessageID(Message sentMsg)
