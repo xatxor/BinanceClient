@@ -24,7 +24,7 @@ namespace BinanceClient
             var usersNotInDb = newIDs.Where(u => !infoInDb.Contains(u));
             return usersNotInDb;
         }
-        public void AddBinanceInfo(IEnumerable<BinanceInfo> ieinfo)
+        public void AddBinanceInfo(IEnumerable<BinanceInfo> ieinfo, bool full=true)
         {
             using (ApplicationContext context = new ApplicationContext())
             {
@@ -33,7 +33,7 @@ namespace BinanceClient
                 var sum = currentinfo.Select(e => e.TradeQuantity).Sum();
                 var lastelement = currentinfo.Last();
                 var info = new BinanceInfoShort(lastelement.Time, lastelement.Symbol, sum, lastelement.RatePrice);
-                context.BinanceInfo.AddRange(currentinfo);
+                if(full) context.BinanceInfo.AddRange(currentinfo);
                 context.BinanceInfoShort.Add(info);
                 context.SaveChanges();
             }
@@ -43,7 +43,7 @@ namespace BinanceClient
         {
             using (ApplicationContext context = new ApplicationContext())
             {
-                var result = context.BinanceInfo.AsEnumerable().Last();
+                var result = context.BinanceInfo.OrderByDescending(bi => bi.Id).First();
                 return result;
             }
         }
