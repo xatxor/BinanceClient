@@ -5,16 +5,18 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Navigation;
+using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
+using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 
 namespace BinanceCore.Services
 {
     class Telega
     {
-        public delegate void GotCommandDgt(string cmd, string args, int from);
+        public delegate void GotCommandDgt(string cmd, string args, long chatid);
         public event GotCommandDgt GotCommand;
 
-        public delegate void GotMessageDgt(string msg, int from);
+        public delegate void GotMessageDgt(string msg, long chatid);
         public event GotMessageDgt GotMessage;
 
         public delegate void GotUserDgt(int from, string username, string firstname, string lastname);
@@ -22,7 +24,6 @@ namespace BinanceCore.Services
 
         public delegate void LogDgt(string msg);
         public event LogDgt Log;
-
 
         Telegram.Bot.TelegramBotClient _bot;
         int _master;
@@ -35,26 +36,48 @@ namespace BinanceCore.Services
             _bot.OnMessage += OnMessage;
             _bot.OnCallbackQuery += OnCallback;
             _bot.StartReceiving();
+            GotMessage += Bot_GotMessage;
+            GotCommand += Bot_GotCommand;
+            Log += Bot_Log;
         }
 
-        private void OnCallback(object sender, Telegram.Bot.Args.CallbackQueryEventArgs e)
+        private void OnCallback(object sender, CallbackQueryEventArgs e)
         {
-            var txt = e.CallbackQuery.Data;
-            if (txt.StartsWith("/"))
-            {
-                var cmd = (txt + " ").Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0].ToLower().Substring(1);
-                var args = txt.Substring(cmd.Length + 1).Trim();
+            MessageHandler(e.CallbackQuery.Data, e.CallbackQuery.Message.Chat.Id);
+        }
 
-                GotCommand?.Invoke(cmd, args, e.CallbackQuery.From.Id);
+        private void OnMessage(object sender, MessageEventArgs e)
+        {
+            MessageHandler(e.Message.Text, e.Message.Chat.Id);
+        }
+
+        private void MessageHandler(string message, long chatid)
+        {
+            if (message.StartsWith("/"))
+            {
+                var cmd = (message + " ").Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0].ToLower().Substring(1);
+                var args = message.Substring(cmd.Length + 1).Trim();
+
+                GotCommand?.Invoke(cmd, args, chatid);
             }
             else
-                GotMessage?.Invoke(txt, e.CallbackQuery.From.Id);
+                GotMessage?.Invoke(message, chatid);
         }
 
-        private void OnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
+        private void Bot_GotCommand(string cmd, string args, long chatid)
         {
+
         }
 
+        private void Bot_GotMessage(string msg, long chatid)
+        {
+            _bot.SendTextMessageAsync(chatid, "Бот понимает только команды, начинающиеся с /");
+        }
+
+        async private void Bot_Log(string msg)
+        {
+            await TextMessageMaster(msg);
+        }
 
         async internal Task<int> TextMessage(string v, int from)
         {
