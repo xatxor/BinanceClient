@@ -52,8 +52,6 @@ namespace BinanceCore
             balance.Log += (sender, msg) => Log(msg);   //  привязка логов показывалки балансов к логам главного окна
 
             timer.Elapsed += Timer_Elapsed;             //  привязка ежесекундного таймера
-            LoadSymbols();
-            Symbols.Text = "BTCUSDT";
             LoadDefaultProject();
 
             followA.GotFall += FollowA_GotFall;
@@ -61,10 +59,23 @@ namespace BinanceCore
             followA.LostFall += FollowA_LostFall;
             followA.LostRise += FollowA_LostRise;
             followA.LogMsg += FollowA_LogMsg;
-    
+
+
+            symbolSelector.LoadSymbols(client, new string[] { "USDT"});
+            symbolSelector.SymbolSelected += symbolChanged;     //  При изменении выбора торговой пары
+            symbolSelector.SetPair("LTCUSDT");                  //  установим торговую пару по умолчанию
             balance.UpdateBalance();
+            symbolSelector.StableSet += symbolChanged;          //  не важно, изменилась ли вся пара или часть
+            symbolSelector.TradeSet += symbolChanged;           //  нужно выполнить некоторую актуализацию
 
             Task.Run(async () => await telega.MessageMaster("BinanceCore v.0.1 started."));
+        }
+
+        private void symbolChanged(string data)
+        {
+            balance.Tokens = new string[] { symbolSelector.Trade, symbolSelector.Stable };
+            cache.Clear();
+            balance.UpdateBalance();
         }
 
         private async void FollowA_LogMsg(object sender, string msg)
@@ -152,13 +163,6 @@ namespace BinanceCore
 
         }
 
-
-        private void LoadSymbols()
-        {
-            Symbols.ItemsSource = client.GetExchangeInfo().
-                                    Data.Symbols.Select(s => s.Name).OrderBy(s => s);
-        }
-
         private void Log(string v)
         {
             Title = v;
@@ -176,18 +180,17 @@ namespace BinanceCore
 
         private void Graph_Clicked(object sender, RoutedEventArgs e)
         {
-            var symbol = Symbols.SelectedItem.ToString();
             Log("Loading history...");
             var span = new TimeSpan(0, 1, 0, 0);
             DateTime fin = DateTime.UtcNow;
 
-            var BinanceInfo=GetTradesAndRates(symbol, LastMoment, fin).Where(tr=>tr.Id>LastCached);
+            var BinanceInfo=GetTradesAndRates(SelectedPair, LastMoment, fin).Where(tr=>tr.Id>LastCached);
             cache.RemoveAll(r => r.Time < fin.AddDays(-1));//   убираем из кэша старые данные
             cache.AddRange(BinanceInfo);    // добавляем свежие
 
             Log("History loaded. Drawing...");
 
-            iv.LoadBitmap(Drawing.MakeGraph(symbol, fin, span * 24, cache));
+            iv.LoadBitmap(Drawing.MakeGraph(SelectedPair, fin, span * 24, cache));
 
             var code = Coding.MakeCode(fin, span * 24, cache);
             Log("Image ready. Code: " + code);
@@ -255,7 +258,7 @@ namespace BinanceCore
             var bal = GetBalance(TradingToken);
             bal = ((int)(bal * 10000)) / 10000M;
 
-            var res = client.PlaceOrder(SelectedPair,                                              //  Биткоин
+            var res = client.PlaceOrder(SelectedPair,                               // торговую монету в паре
                                 Binance.Net.Enums.OrderSide.Sell,                   //  продаём
                                 Binance.Net.Enums.OrderType.Market,
                                 bal);    //  по доступной цене
@@ -264,9 +267,12 @@ namespace BinanceCore
             Console.Write(res.ToString());
         }
 
-        private string SelectedPair => Symbols.Text;
-        private string TradingToken => SelectedPair.Replace(StableToken, "");
-        private string StableToken => stableTB.Text;
+        #region Быстрый доступ на чтение к выбранной паре токенов
+        private string SelectedPair => symbolSelector.Symbol;
+        private string TradingToken => symbolSelector.Trade;
+        private string StableToken => symbolSelector.Stable;
+        #endregion
+
         private async void BuyBTCClicked(object sender, RoutedEventArgs e)
         {
             try
@@ -274,8 +280,8 @@ namespace BinanceCore
                 var bal = GetBalance(StableToken);
                 var will = ((int)(1000 * bal / LastPrice)) / 1000M;
 
-                var res = client.PlaceOrder(SelectedPair,                                              //  Биткоин
-                                    Binance.Net.Enums.OrderSide.Buy,                   //  продаём
+                var res = client.PlaceOrder(SelectedPair,                               //  торговую монету в паре
+                                    Binance.Net.Enums.OrderSide.Buy,                   //  покупаем
                                     Binance.Net.Enums.OrderType.Market,
                                     will);    //  по доступной цене
                 if (res.Data == null)
@@ -325,7 +331,7 @@ namespace BinanceCore
             {
                 fractals = fractalsList.ToArray(),
                 interval = timeout,
-                ticker = Symbols.Text
+                symbol = symbolSelector.Symbol
             };
             proj.Save();
         }
@@ -340,7 +346,7 @@ namespace BinanceCore
                     CreateFractalConfiguration(f);
 
                 intervalTB.Text = proj.interval.ToString();                     //  загружаем интервал автоматического обновления
-                Symbols.Text = proj.ticker;                                     //  устанавливаем выбранный тикер
+                symbolSelector.SetPair(proj.symbol); //  установим торговую пару по умолчанию
             }
             catch (Exception ex)
             {
@@ -353,13 +359,5 @@ namespace BinanceCore
             fractalsSP.Children.Clear();                                    //  удаляем содержимое списка фракталов если там остались старые
         }
 
-        private void Symbols_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (e.AddedItems.Count == 1)
-            {
-                tradeTB.Text = e.AddedItems[0].ToString().Replace(StableToken,"");
-                balance.Tokens = new string[] { tradeTB.Text, StableToken };
-            }
-        }
     }
 }

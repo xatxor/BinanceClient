@@ -9,6 +9,6 @@ namespace BinanceCore.Entities
     {
         public FractalDefinition[] fractals;
         public int interval;
-        public string ticker;
+        public string symbol;
     }
 }
