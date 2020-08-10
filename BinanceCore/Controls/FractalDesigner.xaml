@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BinanceCore"
              mc:Ignorable="d" 
-             d:DesignHeight="112" d:DesignWidth="418">
+             d:DesignHeight="98" d:DesignWidth="418">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="379"/>
@@ -20,15 +20,14 @@
             <local:Segment x:Name="segment6" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54"/>
             <local:Segment x:Name="segment7" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54"/>
         </StackPanel>
-        <Label x:Name="status" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Content="code" Background="LightGray" Height="14" Padding="5 0" FontSize="10" VerticalContentAlignment="Center"/>
 
         <!-- управление количеством шагов фрактала -->
-        <Grid Grid.Column="1" Margin="0 0 0 15">
-            <Button x:Name="MoreStepsB" Content="+" Click="MoreStepsB_Click" Margin="0,0,0,75" />
-            <Button x:Name="LessStepsB" Content="-" Height="22" VerticalAlignment="Bottom" Click="LessStepsB_Click" />
+        <Grid Grid.Column="1">
+            <Button x:Name="MoreStepsB" Content="+" Margin="0,0,0,75" IsEnabled="False" />
+            <Button x:Name="LessStepsB" Content="-" Height="22" VerticalAlignment="Bottom"/>
         </Grid>
         <!-- управление количеством шагов фрактала -->
-        <Grid Grid.Column="1" Margin="0 22 0 37">
+        <Grid Grid.Column="1" Margin="0 22 0 22">
             <Label x:Name="maxL" Content="+10%" Height="22" VerticalAlignment="Top" HorizontalContentAlignment="Left" FontFamily="Courier New"/>
             <Label x:Name="minL" Content="-10%" Height="22" VerticalAlignment="Bottom" HorizontalContentAlignment="Left" FontFamily="Courier New"/>
         </Grid>

@@ -6,19 +6,24 @@
         xmlns:local="clr-namespace:BinanceCore"
         xmlns:Controls="clr-namespace:BinanceCore.Controls" x:Class="BinanceCore.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="480" Width="1190">
+        Title="MainWindow" Height="480" Width="1160">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="80px"/>
             <ColumnDefinition Width="640px"/>
-            <ColumnDefinition Width="468px"/>
+            <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="320px"/>
             <RowDefinition Height="138px"/>
         </Grid.RowDefinitions>
         <StackPanel>
-            <ComboBox Height="30" x:Name="Symbols" />
+            <StackPanel>
+                <Label FontSize="8" Padding="0">STABLE:</Label>
+                <TextBox x:Name="stableTB" Text="USDT"/>
+                <Label FontSize="8" Padding="0">TRADE:</Label>
+                <TextBox x:Name="tradeTB" Text=""/>
+            </StackPanel>
             <Button Content="Graph" Click="Graph_Clicked"/>
             <Button Content="Find Fractal" Click="FindFractal_Clicked"/>
             <StackPanel Orientation="Horizontal" Margin="0 20 0 5">
@@ -46,9 +51,9 @@
                     </TransformGroup>
                 </CheckBox.RenderTransform>
             </CheckBox>
-            <Controls:Balance x:Name="balance"  Height="77" Background="LightGray"/>
-            <Button Content="Sell BTC" Click="SellBTCClicked"/>
-            <Button Content="Buy BTC" Click="BuyBTCClicked"/>
+            <Controls:Balance x:Name="balance"  Height="38" Background="LightGray"/>
+            <Button Content="Sell TRADE" Click="SellBTCClicked"/>
+            <Button Content="Buy TRADE" Click="BuyBTCClicked"/>
             <!--            <Button Content="Stop"  Click="Button_Click_1" />
             <Button Content="Go" Click="Button_Click"/> -->
         </StackPanel>
@@ -65,6 +70,7 @@
                 <Button x:Name="addFractalB" Content="Add Fractal" Click="addFractalB_Click"/>
                 <Button x:Name="saveB" Content="Save Configuration" Click="saveB_Click"/>
                 <Button x:Name="loadB" Content="Load Configuration" Click="loadB_Click"/>
+                <ComboBox VerticalAlignment="Stretch" Width="100" x:Name="Symbols" SelectionChanged="Symbols_SelectionChanged" />
             </StackPanel>
             <TabControl Grid.Row="1">
                 <TabItem Header="Follow" Height="20" VerticalAlignment="Bottom">
