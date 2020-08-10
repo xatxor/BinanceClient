@@ -121,7 +121,7 @@ namespace BinanceCore
         private async void FollowA_GotRise(Controls.FollowerAnalyzer sender)
         {
             balance.UpdateBalance();
-            await telega.MessageMaster("Курс вырос! Продавай. " + LastPriceTrimmed+"\nБудем ждать падения и купим снова.\n" + balance.BalInfo);
+            await telega.MessageMaster("Курс вырос! Продаю по " + LastPriceTrimmed+"\nБудем ждать падения и купим снова.\n" + balance.BalInfo);
             SellBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
@@ -131,7 +131,7 @@ namespace BinanceCore
         private async void FollowA_GotFall(Controls.FollowerAnalyzer sender)
         {
             balance.UpdateBalance();
-            await telega.MessageMaster("Курс упал! Покупай. " + LastPriceTrimmed + "\nБудем ждать роста и продадим.\n"+balance.BalInfo);
+            await telega.MessageMaster("Курс упал! Покупаю по " + LastPriceTrimmed + "\nБудем ждать роста и продадим.\n"+balance.BalInfo);
             BuyBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
@@ -146,19 +146,17 @@ namespace BinanceCore
                 {
                     timePassed = 0;
                     timer.Stop();
-                    Title = "АВТООБНОВЛЕНИЕ...";
+                    autoCB.Content = "⏳";
                     Graph_Clicked(null, null);
-                    FindFractal_Clicked(null, null);
                     this.DoEvents();
                     timer.Start();
                     this.DoEvents();
-                    Title = "Автообновление завершено " + DateTime.Now.ToString();
-                    FindFractal_Clicked(null, null);
+                    autoCB.Content = "✓";
                     followA.PriceUpdate(LastPrice);
                     balance.UpdateBalance();
                 }
                 else
-                    Title = $"Timeout: {(timeout-timePassed)}";
+                     autoCB.Content = $"{(timeout-timePassed)}";
             }));
 
         }
@@ -178,37 +176,26 @@ namespace BinanceCore
         decimal LastPrice => cache.Count() > 0 ? cache.Last().RatePrice : 0;
         DateTime LastMoment => cache.Count() > 0 ? cache.Last().Time : DateTime.UtcNow.AddDays(-1);
 
+        #region Реакции на нажатия
         private void Graph_Clicked(object sender, RoutedEventArgs e)
         {
             Log("Loading history...");
-            var span = new TimeSpan(0, 1, 0, 0);
             DateTime fin = DateTime.UtcNow;
+            var graphDuration = new TimeSpan(1, 0, 0, 0);
 
-            var BinanceInfo=GetTradesAndRates(SelectedPair, LastMoment, fin).Where(tr=>tr.Id>LastCached);
-            cache.RemoveAll(r => r.Time < fin.AddDays(-1));//   убираем из кэша старые данные
-            cache.AddRange(BinanceInfo);    // добавляем свежие
+            cache.RemoveAll(r => r.Time < fin.AddDays(-graphDuration.TotalDays));       //   убираем из кэша устаревшие данные (те что в прошлом за пределами графика)
+
+            var BinanceInfo = repos.GetRangeOfElementsByTime(                           // Выгрузим из БД записи по дате
+                fin.Subtract(graphDuration),fin,SelectedPair,shortCB.IsChecked==true)   // до текущего момента на длину графика заданную пару с учётом полноты SHORT/FULL
+                .Where(tr => tr.Id > LastCached);                                       // и выберем оттуда только те записи, у которых номера больше, чем нам уже известны и есть в кэше
+
+            cache.AddRange(BinanceInfo);                                                // добавляем свежие данные в кэш
 
             Log("History loaded. Drawing...");
+            Coding.MakeCode(fin, graphDuration, cache);
+            iv.LoadBitmap(Drawing.MakeGraph(SelectedPair, fin, graphDuration, cache));
 
-            iv.LoadBitmap(Drawing.MakeGraph(SelectedPair, fin, span * 24, cache));
-
-            var code = Coding.MakeCode(fin, span * 24, cache);
-            Log("Image ready. Code: " + code);
-        }
-
-
-
-        private IEnumerable<BinanceInfo> GetTradesAndRates(string symbol,DateTime start, DateTime fin)
-        {
-            Log($"Loading history {start}...{fin} ({fin.Subtract(start).TotalMinutes} minutes)");
-            var tradesAndRates = repos.GetRangeOfElementsByTime(start, fin, symbol,shortCB.IsChecked==true);
-            Log("History is loaded");
-            return tradesAndRates;
-        }
-
-        #region Реакции на нажатия
-        private void FindFractal_Clicked(object sender, RoutedEventArgs e)
-        {
+            #region Отрисовка фракталов
             canv.Children.Clear();  //  очистка накладки на график - той накладки, где рисуются все найденные фракталы
 
             foreach (var configurator in fractalsSP.Children)           //  перебор всех фракталов, загруженных в плашки конфигураций
@@ -216,7 +203,8 @@ namespace BinanceCore
                     FractalMath.FindFractal(                            //  для этого находим фрактал
                         (configurator as FractalConfiguration).FractalDefinition, //  очередной
                         Coding.LatestCode),                             //  в коде графика
-                    canv);                                              //  и отрисовываем рамки фрактала на холсте
+                    canv);
+            #endregion
         }
 
         private void addFractalB_Click(object sender, RoutedEventArgs e)
@@ -227,8 +215,12 @@ namespace BinanceCore
         {
             int.TryParse(intervalTB.Text, out timeout);
             timePassed = 0;
-            timer.Enabled = (sender as CheckBox).IsChecked == true;
-            if (!timer.Enabled) intervalTB.Text = timeout.ToString();
+            timer.Enabled = autoCB.IsChecked == true;
+            if (!timer.Enabled)
+            {
+                autoCB.Content = "AUTO";
+                intervalTB.Text = timeout.ToString();
+            }
         }
 
         private void saveB_Click(object sender, RoutedEventArgs e)
@@ -262,8 +254,11 @@ namespace BinanceCore
                                 Binance.Net.Enums.OrderSide.Sell,                   //  продаём
                                 Binance.Net.Enums.OrderType.Market,
                                 bal);    //  по доступной цене
-            if (res.Data == null)
+            if (res.Data != null)
+                followA.Mode = Controls.Mode.WAIT_FALL;
+            else
                 await telega.MessageMaster($"Не могу продать {bal} {TradingToken}");
+
             Console.Write(res.ToString());
         }
 
@@ -284,8 +279,12 @@ namespace BinanceCore
                                     Binance.Net.Enums.OrderSide.Buy,                   //  покупаем
                                     Binance.Net.Enums.OrderType.Market,
                                     will);    //  по доступной цене
-                if (res.Data == null)
-                    await telega.MessageMaster($"Не могу купить {bal} {TradingToken}");
+                if (res.Data != null)
+                {
+                    followA.Mode = Controls.Mode.WAIT_RISE;
+                }
+                else
+                    await telega.MessageMaster($"Не могу купить {will} {TradingToken}");
 
                 Console.Write(res.ToString());
             }

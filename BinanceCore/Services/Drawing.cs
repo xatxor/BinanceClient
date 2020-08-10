@@ -95,7 +95,7 @@ namespace BinanceCore.Services
                 {
                     Stroke = new System.Windows.Media.SolidColorBrush(),
                     Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(
-                        (byte)(c.A / 2),
+                        (byte)(c.A / 4),
                         c.R,
                         c.G,
                         c.B)),
