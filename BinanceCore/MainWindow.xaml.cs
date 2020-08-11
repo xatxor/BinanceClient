@@ -155,26 +155,38 @@ namespace BinanceCore
         }
         #endregion
 
+        /// <summary>
+        /// Срабатывает каждую секунду, отображает отсчёт и вызывает автообновление
+        /// с заданной периодичностью
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(new Action(() => { 
-                if (++timePassed > Timeout)
-                {
-                    timePassed = 0;
-                    timer.Stop();
-                    autoCB.Content = "⏳";
-                    Graph_Clicked(null, null);
-                    this.DoEvents();
-                    timer.Start();
-                    this.DoEvents();
-                    autoCB.Content = "✓";
-                    followA.PriceUpdate(LastPrice);
-                    balance.UpdateBalance();
+            Application.Current.Dispatcher.Invoke(new Action(() => {
+                if (++timePassed > Timeout)                         //  Сравнение времени с прошлого обнволения с заданным периодом
+                {                                                   //  если прошло достаточно времени
+                    timePassed = 0;                                 //      сбрасывается счётчик секунд
+                    timer.Stop();                                   //      таймер останавливается на время обновления
+                    AutoUpdate();                                   //      выполняется обновлене
+                    timer.Start();                                  //      и таймер запускается снова
                 }
-                else
-                     autoCB.Content = $"{(Timeout-timePassed)}";
+                else                                                //  если же времени прошло недостаточно
+                    autoCB.Content = $"{(Timeout - timePassed)}";   //      то просто обновим индикатор отсчёта
             }));
 
+        }
+
+        /// <summary>
+        /// По таймеру обновляется график, при этом в Follower отправляется свежий курс и обновляется баланс
+        /// </summary>
+        private void AutoUpdate()
+        {
+            autoCB.Content = "⏳";
+            Graph_Clicked(null, null);
+            this.DoEvents();
+            autoCB.Content = "✓";
+            balance.UpdateBalance();
         }
 
         private void Log(string v)
@@ -223,6 +235,8 @@ namespace BinanceCore
                         Coding.LatestCode),                             //  в коде графика
                     canv);
             #endregion
+
+            followA.PriceUpdate(LastPrice);
         }
 
         private void addFractalB_Click(object sender, RoutedEventArgs e)
