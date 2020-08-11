@@ -97,7 +97,7 @@ namespace BinanceCore.Controls
         public Mode Mode
         {
             get => mode;
-            set { mode = value; modeB.Content=mode==Mode.WAIT_FALL?"Жду падения, у меня есть токены":"Жду роста, у меня стейбл"; Log($"Mode Price set to {value}"); }
+            set { mode = value; modeB.Content=mode==Mode.WAIT_FALL? "Жду падения, у меня стейбл" : "Жду роста, у меня есть токены"; Log($"Mode Price set to {value}"); }
         }
         decimal latestPrice = 0;
         /// <summary>

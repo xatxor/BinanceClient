@@ -254,7 +254,7 @@ namespace BinanceCore.Services
                 g.DrawString($"{dateS}", dateFont, Brushes.White, w - dateStringSize.Width, 22);
 
                 int minMaxTop = -10 + 6;
-                Pen gridPen = new Pen(Color.FromArgb(20, Color.White));
+                Pen gridPen = new Pen(Color.FromArgb(30, Color.White)); //  цвет линий процентной сетки
                 decimal mid = (max + min) / 2;
                 decimal plusPercent = mid * 1.01m;
                 decimal minusPercent = mid - (plusPercent - mid);
