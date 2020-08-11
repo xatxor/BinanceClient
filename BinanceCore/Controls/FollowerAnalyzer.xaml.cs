@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,7 +22,7 @@ namespace BinanceCore.Controls
     /// Если курс падает в N раз сильнее, чем ожидался рост, то новый уровень признаётся новым базовым из-за сильного падения вместо роста.
     /// Если курс растёт в N раз сильнее, чем ожидалось падение, то новый уровень признаётся новым базовым из-за сильного роста вместо падения.
     /// </summary>
-    public partial class FollowerAnalyzer : UserControl
+    public partial class FollowerAnalyzer : UserControl, INotifyPropertyChanged
     {
         public delegate void FollowEventDgt(FollowerAnalyzer sender);
         public event FollowEventDgt GotFall;
@@ -29,15 +30,38 @@ namespace BinanceCore.Controls
         public event FollowEventDgt LostFall;
         public event FollowEventDgt LostRise;
         public event LogDgt LogMsg;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         decimal range = 0;
         /// <summary>
-        /// Величина ожидаемого роста или падения
+        /// Величина ожидаемого роста 
         /// </summary>
         public decimal Range
         {
             get => range;
-            set { range = value; if (rangeTB.Text != range.ToString()) rangeTB.Text = range.ToString(); Log($"Range set to {value}"); }
+            set
+            {
+                if (range == value) return;
+                range = value;
+                Log($"Range (will sell on reach) set to {value}%");
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Range"));
+            }
+        }
+
+        decimal rangeBuy = 0;
+        /// <summary>
+        /// Величина ожидаемого падения
+        /// </summary>
+        public decimal RangeBuy
+        {
+            get => rangeBuy;
+            set
+            {
+                if (rangeBuy == value) return;
+                rangeBuy = value;
+                Log($"RangeBuy (will buy on reach) set to {value}%");
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RangeBuy"));
+            }
         }
 
         decimal basePrice = 0;
@@ -47,7 +71,13 @@ namespace BinanceCore.Controls
         public decimal BasePrice
         {
             get => basePrice;
-            set { basePrice = value; if(baseTB.Text!=BasePrice.ToString()) baseTB.Text = basePrice.ToString(); Log($"Base Price set to {value}"); }
+            set
+            {
+                if (basePrice == value) return;
+                basePrice = value;
+                Log($"Base Price set to {value}");
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BasePrice"));
+            }
         }
 
         /// <summary>
@@ -70,7 +100,51 @@ namespace BinanceCore.Controls
             set { mode = value; modeB.Content=mode==Mode.WAIT_FALL?"Жду падения":"Жду роста"; Log($"Mode Price set to {value}"); }
         }
         decimal latestPrice = 0;
-        decimal allowLostBeforeUpdateBasePrice = 3;
+        /// <summary>
+        /// Последняя известная цена монеты по отношению к стейблу
+        /// </summary>
+        public decimal LatestPrice
+        {
+            get => latestPrice;
+            set
+            {
+                if (latestPrice == value) return;
+                latestPrice = value;
+                PropertyChanged?.Invoke(this,new PropertyChangedEventArgs("LatestPrice"));
+            }
+        }
+
+        decimal failFallLevel = 3;
+        /// <summary>
+        /// На сколько процентов должен вырасти курс когда сидим в стейбле
+        /// чтобы пришлось признать, что падения не дождались
+        /// </summary>
+        public decimal FailFallLevel
+        {
+            get => failFallLevel;
+            set
+            {
+                if (failFallLevel == value) return;
+                failFallLevel = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("FailFallLevel"));
+            }
+        }
+
+        decimal failRaiseLevel = 3;
+        /// <summary>
+        /// На сколько процентов должен упасть курс когда монета куплена
+        /// чтобы пришлось признать, что рост не состоялся
+        /// </summary>
+        public decimal FailRaiseLevel
+        {
+            get => failRaiseLevel;
+            set
+            {
+                if (failRaiseLevel == value) return;
+                failRaiseLevel = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("FailRaiseLevel"));
+            }
+        }
         /// <summary>
         /// Метод приёма очередной цены - при приёме цены если анализатор включен (галочка Active), nо могут сгенерироваться
         /// реакции на изменение цены
@@ -78,7 +152,28 @@ namespace BinanceCore.Controls
         /// <param name="newPrice">новая цена токена по паре</param>
         public void PriceUpdate(decimal newPrice)
         {
-            latestPrice = newPrice;
+            LatestPrice = newPrice;
+
+            var dPrice = newPrice - BasePrice;
+            string wouldWin = "0";
+            winNowL.Foreground = Brushes.Orange;
+            if (Mode == Mode.WAIT_FALL) //  Если ожидается не рост, а падение
+                dPrice = -dPrice;       //  то бдуем учитывать изменение цены наоборот чтобы отрицательные значения считались плохими
+
+            if (basePrice != 0)
+            {
+                if (dPrice > 0)
+                {
+                    winNowL.Foreground = Brushes.Green;
+                    wouldWin = (dPrice / BasePrice).ToString("0.###%");
+                }
+                if (dPrice < 0)
+                {
+                    winNowL.Foreground = Brushes.Red;
+                    wouldWin = (dPrice / BasePrice).ToString("0.###%");
+                }
+            }
+            winNowL.Content = wouldWin;
 
             if (activeCB.IsChecked==true)
                 CourseChangeReaction(newPrice);
@@ -94,38 +189,45 @@ namespace BinanceCore.Controls
         /// <param name="newPrice">актуальная цена токена, на котором идёт торг против стейбла (например против USDT)</param>
         private void CourseChangeReaction(decimal newPrice)
         {
+            var d = BasePrice - newPrice;
+            var dp = 0M;
+            if (d > 0) dp = d * 100 / BasePrice;
+            if (d < 0) dp = d * 100 / BasePrice;
+
             if (Mode == Mode.WAIT_FALL)
             {
-                if (basePrice - range > newPrice)
+                if (dp > range)
                 {
                     GotFall(this);
                     Mode = Mode.WAIT_RISE;
                     BasePrice = newPrice;
                 }
                 else
-                if (basePrice + range < newPrice)
+                if (dp < -FailFallLevel)
                 {
                     LostFall(this);
-                    if (basePrice + (range * allowLostBeforeUpdateBasePrice) < newPrice)
+                    if (basePrice + (range * FailRaiseLevel) < newPrice)
                         BasePrice = newPrice;
                 }
             }
             else
             {
-                if (basePrice + range < newPrice)
+                if (dp< -range)
                 {
                     GotRise(this);
                     Mode = Mode.WAIT_FALL;
                     BasePrice = newPrice;
                 }
                 else
-                if (basePrice - range > newPrice)
+                if (dp<-FailRaiseLevel)
                 {
                     LostRise(this);
-                    if (BasePrice - (range * allowLostBeforeUpdateBasePrice) > newPrice)
+                    if (BasePrice - (range * FailRaiseLevel) > newPrice)
                         BasePrice = newPrice;
                 }
             }
+
+
         }
 
         /// <summary>
@@ -134,10 +236,8 @@ namespace BinanceCore.Controls
         public FollowerAnalyzer()
         {
             InitializeComponent();
-            rangeTB.TextChanged+=(a,b)=>rangeTB.TrySaveDecimal(out range);  //  при изменении текста в поле range попытаемся записать введенное в переменную range как число
-            baseTB.TextChanged += (a, b) => baseTB.TrySaveDecimal(out basePrice);
-            failTB.TextChanged += (a, b) => failTB.TrySaveDecimal(out allowLostBeforeUpdateBasePrice);
             modeB.Click += (a, b) => Mode = Mode == Mode.WAIT_FALL ? Mode.WAIT_RISE : Mode.WAIT_FALL;
+            TopLevelController.DataContext = this;
         }
 
         /// <summary>
@@ -147,7 +247,7 @@ namespace BinanceCore.Controls
         /// <param name="e"></param>
         private void BasePriceB_Click(object sender, RoutedEventArgs e)
         {
-            BasePrice = latestPrice;
+            BasePrice = LatestPrice;
         }
 
 

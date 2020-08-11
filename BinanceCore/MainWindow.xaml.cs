@@ -354,7 +354,13 @@ namespace BinanceCore
             {
                 fractals = fractalsList.ToArray(),
                 interval = Timeout,
-                symbol = symbolSelector.Symbol
+                symbol = symbolSelector.Symbol,
+                FailFall=followA.FailFallLevel,
+                FailRise=followA.FailRaiseLevel,
+                WinFall=followA.RangeBuy,
+                WinRise=followA.Range,
+                LastMode=followA.Mode,
+                BasePrice=followA.BasePrice
             };
             proj.Save();
         }
@@ -371,6 +377,12 @@ namespace BinanceCore
                 Timeout = proj.interval;                     //  загружаем интервал автоматического обновления
                 symbolSelector.SetPair(proj.symbol); //  установим торговую пару по умолчанию
                 balance.Tokens = new string[] { symbolSelector.Trade, symbolSelector.Stable };
+                followA.FailFallLevel=proj.FailFall;
+                followA.FailRaiseLevel = proj.FailRise;
+                followA.RangeBuy = proj.WinFall;
+                followA.Range = proj.WinRise;
+                followA.Mode = proj.LastMode;
+                followA.BasePrice=proj.BasePrice;
             }
             catch (Exception ex)
             {
