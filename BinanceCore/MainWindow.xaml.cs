@@ -14,6 +14,7 @@ using BinanceCore.Services;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Objects;
 using Binance.Net.Objects.Spot.SpotData;
+using System.ComponentModel;
 
 ///  TODO: Пора добавлять следящие ползунки, дающие сигналы торговли
 
@@ -22,37 +23,53 @@ namespace BinanceCore
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        /// <summary>
+        /// Доступ к нашей БД
+        /// </summary>
         Repository repos = new Repository();
-        BinanceSocketClient socketClient = new BinanceSocketClient();
-        int timeout = 30;
+        /// <summary>
+        /// Клиент для работы с бинансом
+        /// </summary>
+        BinanceClient client = new BinanceClient();               //  создание глобального клиента для связи с бинансом
+
+        /// <summary>
+        /// Для поддержки наблюдаемых свойств в классе - это позволяет их привязать к полям через биндинг
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private int timeout;
+        /// <summary>
+        /// Длина интервала между автоматическими обновлениями графика
+        /// </summary>
+        public int Timeout
+        {
+            get => timeout;
+            set
+            {
+                timeout = value;
+                if (null != this.PropertyChanged)
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs("Timeout"));
+                }
+            }
+        }
         int timePassed = 0;
         Timer timer = new Timer(1000);
 
-        BinanceClient client = null;
         Telega telega = new Telega("1294746661:AAGeFjeIBPTvG2pUhcdflPD4Nc_pj8ExdXI", 109159596);
         public MainWindow()
         {
             InitializeComponent();
-            BinanceClient.SetDefaultOptions(new BinanceClientOptions()
-            {
-                ApiCredentials = new ApiCredentials("Ir1QoGFgAuLJpPnqp6z9x6wjEHinmy9yTNye46luxfKZEynU71YQDklbmIF9dWgT", "1ZKZaK4kWgtWcHo8KjKbWqCX1i7Ds2OBXK0QwfuQby0q6NGeFgGIG4soWAWwirkB"),
-                LogVerbosity = LogVerbosity.Debug,
-                LogWriters = new List<TextWriter> { Console.Out }
-            });
-            BinanceSocketClient.SetDefaultOptions(new BinanceSocketClientOptions()
-            {
-                ApiCredentials = new ApiCredentials("Ir1QoGFgAuLJpPnqp6z9x6wjEHinmy9yTNye46luxfKZEynU71YQDklbmIF9dWgT", "1ZKZaK4kWgtWcHo8KjKbWqCX1i7Ds2OBXK0QwfuQby0q6NGeFgGIG4soWAWwirkB"),
-                LogVerbosity = LogVerbosity.Debug,
-                LogWriters = new List<TextWriter> { Console.Out }
-            });
-            client = new BinanceClient();               //  создание глобального клиента для связи с бинансом
             balance.Client = client;                    //  выдача показывалке балансов клиента для связи с бинансом
             balance.Log += (sender, msg) => Log(msg);   //  привязка логов показывалки балансов к логам главного окна
 
             timer.Elapsed += Timer_Elapsed;             //  привязка ежесекундного таймера
+            symbolSelector.LoadSymbols(client, new string[] { "USDT" });
+            symbolSelector.SetPair("LTCUSDT");                  //  установим торговую пару по умолчанию
             LoadDefaultProject();
+            symbolSelector.SymbolSelected += symbolChanged;     //  При изменении выбора торговой пары
 
             followA.GotFall += FollowA_GotFall;
             followA.GotRise += FollowA_GotRise;
@@ -61,12 +78,11 @@ namespace BinanceCore
             followA.LogMsg += FollowA_LogMsg;
 
 
-            symbolSelector.LoadSymbols(client, new string[] { "USDT"});
-            symbolSelector.SymbolSelected += symbolChanged;     //  При изменении выбора торговой пары
-            symbolSelector.SetPair("LTCUSDT");                  //  установим торговую пару по умолчанию
             balance.UpdateBalance();
             symbolSelector.StableSet += symbolChanged;          //  не важно, изменилась ли вся пара или часть
             symbolSelector.TradeSet += symbolChanged;           //  нужно выполнить некоторую актуализацию
+
+            TopLevelContainer.DataContext = this;               //  Чтобы работали биндинги
 
             Task.Run(async () => await telega.MessageMaster("BinanceCore v.0.1 started."));
         }
@@ -142,7 +158,7 @@ namespace BinanceCore
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             Application.Current.Dispatcher.Invoke(new Action(() => { 
-                if (++timePassed > timeout)
+                if (++timePassed > Timeout)
                 {
                     timePassed = 0;
                     timer.Stop();
@@ -156,7 +172,7 @@ namespace BinanceCore
                     balance.UpdateBalance();
                 }
                 else
-                     autoCB.Content = $"{(timeout-timePassed)}";
+                     autoCB.Content = $"{(Timeout-timePassed)}";
             }));
 
         }
@@ -169,6 +185,8 @@ namespace BinanceCore
         }
 
         List<BinanceInfo> cache = new List<BinanceInfo>();
+
+
         /// <summary>
         /// ID последней кэшированной записи бинанса
         /// </summary>
@@ -186,14 +204,14 @@ namespace BinanceCore
             cache.RemoveAll(r => r.Time < fin.AddDays(-graphDuration.TotalDays));       //   убираем из кэша устаревшие данные (те что в прошлом за пределами графика)
 
             var BinanceInfo = repos.GetRangeOfElementsByTime(                           // Выгрузим из БД записи по дате
-                fin.Subtract(graphDuration),fin,SelectedPair,shortCB.IsChecked==true)   // до текущего момента на длину графика заданную пару с учётом полноты SHORT/FULL
+                fin.Subtract(graphDuration),fin,SelectedPair,true)   // до текущего момента на длину графика заданную пару с учётом полноты SHORT
                 .Where(tr => tr.Id > LastCached);                                       // и выберем оттуда только те записи, у которых номера больше, чем нам уже известны и есть в кэше
 
             cache.AddRange(BinanceInfo);                                                // добавляем свежие данные в кэш
 
             Log("History loaded. Drawing...");
             Coding.MakeCode(fin, graphDuration, cache);
-            iv.LoadBitmap(Drawing.MakeGraph(SelectedPair, fin, graphDuration, cache));
+            iv.LoadBitmap(Drawing.MakeGraph("", fin, graphDuration, cache));
 
             #region Отрисовка фракталов
             canv.Children.Clear();  //  очистка накладки на график - той накладки, где рисуются все найденные фракталы
@@ -213,14 +231,10 @@ namespace BinanceCore
         }
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            int.TryParse(intervalTB.Text, out timeout);
             timePassed = 0;
             timer.Enabled = autoCB.IsChecked == true;
             if (!timer.Enabled)
-            {
                 autoCB.Content = "AUTO";
-                intervalTB.Text = timeout.ToString();
-            }
         }
 
         private void saveB_Click(object sender, RoutedEventArgs e)
@@ -239,10 +253,6 @@ namespace BinanceCore
             {
                 MessageBox.Show(ex.Message, "EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-        private void intervalTB_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            timeout = intervalTB.TrySaveInt(timeout);
         }
 
         private async void SellBTCClicked(object sender, RoutedEventArgs e)
@@ -273,7 +283,7 @@ namespace BinanceCore
             try
             {
                 var bal = GetBalance(StableToken);
-                var will = ((int)(1000 * bal / LastPrice)) / 1000M;
+                var will = ((int)(10000 * bal / LastPrice)) / 10000M;
 
                 var res = client.PlaceOrder(SelectedPair,                               //  торговую монету в паре
                                     Binance.Net.Enums.OrderSide.Buy,                   //  покупаем
@@ -329,7 +339,7 @@ namespace BinanceCore
             var proj = new Project()
             {
                 fractals = fractalsList.ToArray(),
-                interval = timeout,
+                interval = Timeout,
                 symbol = symbolSelector.Symbol
             };
             proj.Save();
@@ -344,8 +354,9 @@ namespace BinanceCore
                 foreach (var f in proj.fractals)                                //  перебираем все фракталы из загруженного проекта
                     CreateFractalConfiguration(f);
 
-                intervalTB.Text = proj.interval.ToString();                     //  загружаем интервал автоматического обновления
+                Timeout = proj.interval;                     //  загружаем интервал автоматического обновления
                 symbolSelector.SetPair(proj.symbol); //  установим торговую пару по умолчанию
+                balance.Tokens = new string[] { symbolSelector.Trade, symbolSelector.Stable };
             }
             catch (Exception ex)
             {

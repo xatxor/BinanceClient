@@ -40,8 +40,8 @@
             <TextBlock>BTCUSDT</TextBlock>
             <TextBlock>BTCLTC</TextBlock>
         </ComboBox>
-        <Label Grid.Row="1" Grid.Column="0" Content="Trade" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom"/>
-        <Label Grid.Row="1" Grid.Column="1" Content="Stable" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom"/>
+        <Label Grid.Row="1" Grid.Column="0" Content="Trade" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom" Foreground="LightGray"/>
+        <Label Grid.Row="1" Grid.Column="1" Content="Stable" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom" Foreground="LightGray"/>
         <TextBox x:Name="tradeTB" Grid.Row="2" Grid.Column="0" Text="LTC" />
         <TextBox x:Name="stableTB" Grid.Row="2" Grid.Column="1" Text="USDT" />
     </Grid>

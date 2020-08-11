@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -8,7 +9,7 @@ namespace BinanceCore
     /// Редактор сегмента позволяет настроить числовые параметры и режим работы (рост, падение или плоский курс)
     /// и отображает, диапазон возможного хода графика на сегменте.
     /// </summary>
-    public partial class Segment : UserControl
+    public partial class Segment : UserControl, INotifyPropertyChanged
     {
         /// <summary>
         /// Делитель процентов в настройках, то есть если в настройках рост на 100, а делитель 1000, значит настроен рост на 0.1
@@ -20,6 +21,7 @@ namespace BinanceCore
         /// Событие возникает если изменились параметры работы сегмента (минимум, максимум изменения или режим)
         /// </summary>
         public event ChangedDgt Changed;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Режимы работы сегмента - рост курса, падение или стоп - плоский курс
@@ -57,8 +59,14 @@ namespace BinanceCore
             get { return maxD; }
             set {
                     maxD = value;
-                    maxDTB.Text = value.ToString();
-                }
+                    UpdateOuts();
+
+                    DrawGraph();
+                    if (null != this.PropertyChanged)
+                    {
+                        PropertyChanged(this, new PropertyChangedEventArgs("MaxD"));
+                    }
+            }
         }
 
         int minD = 10;
@@ -70,8 +78,13 @@ namespace BinanceCore
             get { return minD; }
             set {
                 minD = value;
-                minDTB.Text = value.ToString(); 
-            } 
+                UpdateOuts();
+                DrawGraph();
+                if (null != this.PropertyChanged)
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs("MinD"));
+                }
+            }
         }
 
         double inMin = 0.5;
@@ -218,6 +231,7 @@ namespace BinanceCore
             DataContext = this;
             UpdateOuts();
             DrawGraph();
+            TopLevelController.DataContext = this;  //  чтобы работали биндинги
         }
 
 
