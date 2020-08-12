@@ -14,6 +14,7 @@ using BinanceCore.Services;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Objects;
 using Binance.Net.Objects.Spot.SpotData;
+using System.ComponentModel;
 
 ///  TODO: Пора добавлять следящие ползунки, дающие сигналы торговли
 
@@ -22,49 +23,78 @@ namespace BinanceCore
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        /// <summary>
+        /// Доступ к нашей БД
+        /// </summary>
         Repository repos = new Repository();
-        BinanceSocketClient socketClient = new BinanceSocketClient();
-        int timeout = 30;
+        /// <summary>
+        /// Клиент для работы с бинансом
+        /// </summary>
+        BinanceClient client = new BinanceClient();               //  создание глобального клиента для связи с бинансом
+
+        /// <summary>
+        /// Для поддержки наблюдаемых свойств в классе - это позволяет их привязать к полям через биндинг
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private int timeout;
+        /// <summary>
+        /// Длина интервала между автоматическими обновлениями графика
+        /// </summary>
+        public int Timeout
+        {
+            get => timeout;
+            set
+            {
+                timeout = value;
+                if (null != this.PropertyChanged)
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs("Timeout"));
+                }
+            }
+        }
         int timePassed = 0;
-        BinanceClient client = null;
+        Timer timer = new Timer(1000);
+
         Telega telega = new Telega("1294746661:AAGeFjeIBPTvG2pUhcdflPD4Nc_pj8ExdXI", 109159596);
         public MainWindow()
         {
             InitializeComponent();
-            BinanceClient.SetDefaultOptions(new BinanceClientOptions()
-            {
-                ApiCredentials = new ApiCredentials("Ir1QoGFgAuLJpPnqp6z9x6wjEHinmy9yTNye46luxfKZEynU71YQDklbmIF9dWgT", "1ZKZaK4kWgtWcHo8KjKbWqCX1i7Ds2OBXK0QwfuQby0q6NGeFgGIG4soWAWwirkB"),
-                LogVerbosity = LogVerbosity.Debug,
-                LogWriters = new List<TextWriter> { Console.Out }
-            });
-            BinanceSocketClient.SetDefaultOptions(new BinanceSocketClientOptions()
-            {
-                ApiCredentials = new ApiCredentials("Ir1QoGFgAuLJpPnqp6z9x6wjEHinmy9yTNye46luxfKZEynU71YQDklbmIF9dWgT", "1ZKZaK4kWgtWcHo8KjKbWqCX1i7Ds2OBXK0QwfuQby0q6NGeFgGIG4soWAWwirkB"),
-                LogVerbosity = LogVerbosity.Debug,
-                LogWriters = new List<TextWriter> { Console.Out }
-            });
-            client = new BinanceClient();
+            balance.Client = client;                    //  выдача показывалке балансов клиента для связи с бинансом
+            balance.Log += (sender, msg) => Log(msg);   //  привязка логов показывалки балансов к логам главного окна
 
-
-            timer.Elapsed += Timer_Elapsed;
-            LoadSymbols();
+            timer.Elapsed += Timer_Elapsed;             //  привязка ежесекундного таймера
+            symbolSelector.LoadSymbols(client, new string[] { "USDT" });
+            symbolSelector.SetPair("LTCUSDT");                  //  установим торговую пару по умолчанию
             LoadDefaultProject();
-            Symbols.Text = "BTCUSDT";
+            symbolSelector.SymbolSelected += symbolChanged;     //  При изменении выбора торговой пары
 
             followA.GotFall += FollowA_GotFall;
             followA.GotRise += FollowA_GotRise;
             followA.LostFall += FollowA_LostFall;
             followA.LostRise += FollowA_LostRise;
             followA.LogMsg += FollowA_LogMsg;
-    
-            balance.UpdateBalance(client);
+
+
+            balance.UpdateBalance();
+            symbolSelector.StableSet += symbolChanged;          //  не важно, изменилась ли вся пара или часть
+            symbolSelector.TradeSet += symbolChanged;           //  нужно выполнить некоторую актуализацию
+
+            TopLevelContainer.DataContext = this;               //  Чтобы работали биндинги
 
             Task.Run(async () => await telega.MessageMaster("BinanceCore v.0.1 started."));
         }
 
-        private async void FollowA_LogMsg(Controls.FollowerAnalyzer sender, string msg)
+        private void symbolChanged(string data)
+        {
+            balance.Tokens = new string[] { symbolSelector.Trade, symbolSelector.Stable };
+            cache.Clear();
+            balance.UpdateBalance();
+        }
+
+        private async void FollowA_LogMsg(object sender, string msg)
         {
             await telega.MessageMaster($"<i>{msg}</i>");
         }
@@ -79,7 +109,8 @@ namespace BinanceCore
         TimeSpan alertInterval = new TimeSpan(0, 3, 0);
         private async void FollowA_LostRise(Controls.FollowerAnalyzer sender)
         {
-            await Alert("Не дождались роста - падает! Может продать?.. курс по паре: " + LastPriceTrimmed);
+            await Alert("Не дождались роста - падает! Продаём и ждём падения.. курс по паре: " + LastPriceTrimmed);
+            SellBTCClicked(null, null);
         }
 
         private string LastPriceTrimmed=>
@@ -101,59 +132,63 @@ namespace BinanceCore
         }
         private async void FollowA_LostFall(Controls.FollowerAnalyzer sender)
         {
-            await Alert("Не дождались падения - растёт! Может купить?.. курс по паре: " + LastPriceTrimmed);
+            await Alert("Не дождались падения - растёт! Покупаем.. курс по паре: " + LastPriceTrimmed);
+            BuyBTCClicked(null, null);
         }
 
         private async void FollowA_GotRise(Controls.FollowerAnalyzer sender)
         {
             balance.UpdateBalance();
-            await telega.MessageMaster("Курс вырос! Продавай. " + LastPriceTrimmed+"\nБудем ждать падения и купим снова.\n" + balance.balInfo);
+            await telega.MessageMaster("Курс вырос! Продаю по " + LastPriceTrimmed+"\nБудем ждать падения и купим снова.\n" + balance.BalInfo);
             SellBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.MessageMaster("Теперь у нас\n" + balance.balInfo);
+            await telega.MessageMaster("Теперь у нас\n" + balance.BalInfo);
         }
 
         private async void FollowA_GotFall(Controls.FollowerAnalyzer sender)
         {
             balance.UpdateBalance();
-            await telega.MessageMaster("Курс упал! Покупай. " + LastPriceTrimmed + "\nБудем ждать роста и продадим.\n"+balance.balInfo);
+            await telega.MessageMaster("Курс упал! Покупаю по " + LastPriceTrimmed + "\nБудем ждать роста и продадим.\n"+balance.BalInfo);
             BuyBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.MessageMaster("Теперь у нас\n" + balance.balInfo);
+            await telega.MessageMaster("Теперь у нас\n" + balance.BalInfo);
         }
         #endregion
 
+        /// <summary>
+        /// Срабатывает каждую секунду, отображает отсчёт и вызывает автообновление
+        /// с заданной периодичностью
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(new Action(() => { 
-                if (++timePassed > timeout)
-                {
-                    timePassed = 0;
-                    timer.Stop();
-                    Title = "АВТООБНОВЛЕНИЕ...";
-                    Graph_Clicked(null, null);
-                    FindFractal_Clicked(null, null);
-                    this.DoEvents();
-                    timer.Start();
-                    this.DoEvents();
-                    Title = "Автообновление завершено " + DateTime.Now.ToString();
-                    FindFractal_Clicked(null, null);
-                    followA.PriceUpdate(LastPrice);
-                    balance.UpdateBalance();
+            Application.Current.Dispatcher.Invoke(new Action(() => {
+                if (++timePassed > Timeout)                         //  Сравнение времени с прошлого обнволения с заданным периодом
+                {                                                   //  если прошло достаточно времени
+                    timePassed = 0;                                 //      сбрасывается счётчик секунд
+                    timer.Stop();                                   //      таймер останавливается на время обновления
+                    AutoUpdate();                                   //      выполняется обновлене
+                    timer.Start();                                  //      и таймер запускается снова
                 }
-                else
-                    Title = $"Timeout: {(timeout-timePassed)}";
+                else                                                //  если же времени прошло недостаточно
+                    autoCB.Content = $"{(Timeout - timePassed)}";   //      то просто обновим индикатор отсчёта
             }));
 
         }
 
-
-        private void LoadSymbols()
+        /// <summary>
+        /// По таймеру обновляется график, при этом в Follower отправляется свежий курс и обновляется баланс
+        /// </summary>
+        private void AutoUpdate()
         {
-            Symbols.ItemsSource = client.GetExchangeInfo().
-                                    Data.Symbols.Select(s=>s.Name);
+            autoCB.Content = "⏳";
+            Graph_Clicked(null, null);
+            this.DoEvents();
+            autoCB.Content = "✓";
+            balance.UpdateBalance();
         }
 
         private void Log(string v)
@@ -164,6 +199,8 @@ namespace BinanceCore
         }
 
         List<BinanceInfo> cache = new List<BinanceInfo>();
+
+
         /// <summary>
         /// ID последней кэшированной записи бинанса
         /// </summary>
@@ -171,52 +208,124 @@ namespace BinanceCore
         decimal LastPrice => cache.Count() > 0 ? cache.Last().RatePrice : 0;
         DateTime LastMoment => cache.Count() > 0 ? cache.Last().Time : DateTime.UtcNow.AddDays(-1);
 
+        #region Реакции на нажатия
         private void Graph_Clicked(object sender, RoutedEventArgs e)
         {
-            var symbol = Symbols.SelectedItem.ToString();
             Log("Loading history...");
-            var span = new TimeSpan(0, 1, 0, 0);
             DateTime fin = DateTime.UtcNow;
+            var graphDuration = new TimeSpan(1, 0, 0, 0);
 
-            var BinanceInfo=GetTradesAndRates(symbol, LastMoment, fin).Where(tr=>tr.Id>LastCached);
-            cache.RemoveAll(r => r.Time < fin.AddDays(-1));//   убираем из кэша старые данные
-            cache.AddRange(BinanceInfo);    // добавляем свежие
+            cache.RemoveAll(r => r.Time < fin.AddDays(-graphDuration.TotalDays));       //   убираем из кэша устаревшие данные (те что в прошлом за пределами графика)
+
+            var BinanceInfo = repos.GetRangeOfElementsByTime(                           // Выгрузим из БД записи по дате
+                fin.Subtract(graphDuration),fin,SelectedPair,true)   // до текущего момента на длину графика заданную пару с учётом полноты SHORT
+                .Where(tr => tr.Id > LastCached);                                       // и выберем оттуда только те записи, у которых номера больше, чем нам уже известны и есть в кэше
+
+            cache.AddRange(BinanceInfo);                                                // добавляем свежие данные в кэш
 
             Log("History loaded. Drawing...");
+            Coding.MakeCode(fin, graphDuration, cache);
+            iv.LoadBitmap(Drawing.MakeGraph("", fin, graphDuration, cache));
 
-            iv.LoadBitmap(Drawing.MakeGraph(symbol, fin, span * 24, cache));
-
-            var code = Coding.MakeCode(fin, span * 24, cache);
-            Log("Image ready. Code: " + code);
-        }
-
-
-
-        private IEnumerable<BinanceInfo> GetTradesAndRates(string symbol,DateTime start, DateTime fin)
-        {
-            Log($"Loading history {start}...{fin} ({fin.Subtract(start).TotalMinutes} minutes)");
-            var tradesAndRates = repos.GetRangeOfElementsByTime(start, fin, symbol,shortCB.IsChecked==true);
-            Log("History is loaded");
-            return tradesAndRates;
-        }
-
-        private void FindFractal_Clicked(object sender, RoutedEventArgs e)
-        {
+            #region Отрисовка фракталов
             canv.Children.Clear();  //  очистка накладки на график - той накладки, где рисуются все найденные фракталы
 
             foreach (var configurator in fractalsSP.Children)           //  перебор всех фракталов, загруженных в плашки конфигураций
                 Drawing.DrawFoundFractals(                              //  рисуем найденные случаи очередного фрактала
                     FractalMath.FindFractal(                            //  для этого находим фрактал
-                        (configurator as FractalConfiguration).Fractal, //  очередной
+                        (configurator as FractalConfiguration).FractalDefinition, //  очередной
                         Coding.LatestCode),                             //  в коде графика
-                    canv);                                              //  и отрисовываем рамки фрактала на холсте
-        }
+                    canv);
+            #endregion
 
+            followA.PriceUpdate(LastPrice);
+        }
 
         private void addFractalB_Click(object sender, RoutedEventArgs e)
         {
             CreateFractalConfiguration();
         }
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            timePassed = 0;
+            timer.Enabled = autoCB.IsChecked == true;
+            if (!timer.Enabled)
+                autoCB.Content = "AUTO";
+        }
+
+        private void saveB_Click(object sender, RoutedEventArgs e)
+        {
+            SaveProjectToDefault();
+            Log($"Project Saved! ({DateTime.Now.ToString("HH:mm:ss")})");
+        }
+
+        private void loadB_Click(object sender, RoutedEventArgs e)
+        {
+            try                                                                 //  При загрузке сейва могут быть ошибки, поэтому try/catch
+            {
+                LoadDefaultProject();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void SellBTCClicked(object sender, RoutedEventArgs e)
+        {
+            var bal = GetBalance(TradingToken);
+            bal = ((int)(bal * 10000)) / 10000M;
+
+            var res = client.PlaceOrder(SelectedPair,                               // торговую монету в паре
+                                Binance.Net.Enums.OrderSide.Sell,                   //  продаём
+                                Binance.Net.Enums.OrderType.Market,
+                                bal);    //  по доступной цене
+            if (res.Data != null)
+            {
+                followA.Mode = Controls.Mode.WAIT_FALL;
+                followA.BasePrice = LastPrice;
+            }
+            else
+                await telega.MessageMaster($"Не могу продать {bal} {TradingToken}");
+
+            Console.Write(res.ToString());
+        }
+
+        #region Быстрый доступ на чтение к выбранной паре токенов
+        private string SelectedPair => symbolSelector.Symbol;
+        private string TradingToken => symbolSelector.Trade;
+        private string StableToken => symbolSelector.Stable;
+        #endregion
+
+        private async void BuyBTCClicked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var bal = GetBalance(StableToken);
+                bal *= 0.99M;
+                var will = ((int)(10000 * bal / LastPrice)) / 10000M;
+                var res = client.PlaceOrder(SelectedPair,                               //  торговую монету в паре
+                                    Binance.Net.Enums.OrderSide.Buy,                   //  покупаем
+                                    Binance.Net.Enums.OrderType.Market,
+                                    will);    //  по доступной цене
+                if (res.Data != null)
+                {
+                    followA.Mode = Controls.Mode.WAIT_RISE;
+                    followA.BasePrice = LastPrice;
+                }
+                else
+                    await telega.MessageMaster($"Не могу купить {will} {TradingToken}");
+
+                Console.Write(res.ToString());
+            }
+            catch (Exception ex)
+            {
+                Log(ex.Message);
+            }
+
+        }
+        #endregion
+
 
         /// <summary>
         /// Создаёт контрол FractalDefinition, грузит в него настройки фрактала,
@@ -231,7 +340,7 @@ namespace BinanceCore
             {
                 cfg.Code = def.Code;                                          //  загружаем туда код фрактала
                 cfg.Title = def.Title;                                        //  устанавливаем название
-                cfg.Color = def.Color.ToColor();                              //  цвет парсим из строки настройки (в настройках цвет в виде #ffffff
+                cfg.FractalColor = def.Color.ToColor();                              //  цвет парсим из строки настройки (в настройках цвет в виде #ffffff
                 cfg.Symbol = def.Symbol;                                       //  устанавливаем символ пометки фрактала
             }
 
@@ -240,45 +349,26 @@ namespace BinanceCore
             return cfg;
         }
 
-        Timer timer = new Timer(1000); 
-        private void CheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            int.TryParse(intervalTB.Text, out timeout);
-            timePassed = 0;
-            timer.Enabled = (sender as CheckBox).IsChecked == true;
-            if (!timer.Enabled) intervalTB.Text = timeout.ToString();
-        }
-
-        private void saveB_Click(object sender, RoutedEventArgs e)
-        {
-            SaveProjectToDefault();
-            Log($"Project Saved! ({DateTime.Now.ToString("HH:mm:ss")})");
-        }
 
         private void SaveProjectToDefault()
         {
             List<FractalDefinition> fractalsList = new List<FractalDefinition>();
             foreach (var configurator in fractalsSP.Children)   //  перебор всех фракталов, загруженных в плашки конфигураций
-                fractalsList.Add((configurator as FractalConfiguration).Fractal);  //  берём очередную конфигурацию
+                fractalsList.Add((configurator as FractalConfiguration).FractalDefinition);  //  берём очередную конфигурацию
 
             var proj = new Project()
             {
                 fractals = fractalsList.ToArray(),
-                interval = timeout,
-                ticker = Symbols.Text
+                interval = Timeout,
+                symbol = symbolSelector.Symbol,
+                FailFall=followA.FailFallLevel,
+                FailRise=followA.FailRaiseLevel,
+                WinFall=followA.RangeBuy,
+                WinRise=followA.Range,
+                LastMode=followA.Mode,
+                BasePrice=followA.BasePrice
             };
             proj.Save();
-        }
-
-        private void loadB_Click(object sender, RoutedEventArgs e)
-        {
-            try                                                                 //  При загрузке сейва могут быть ошибки, поэтому try/catch
-            {
-                LoadDefaultProject();
-            }
-            catch (Exception ex) { 
-                MessageBox.Show(ex.Message,"EXCEPTION",MessageBoxButton.OK,MessageBoxImage.Error); 
-            }
         }
 
         private void LoadDefaultProject()
@@ -290,8 +380,15 @@ namespace BinanceCore
                 foreach (var f in proj.fractals)                                //  перебираем все фракталы из загруженного проекта
                     CreateFractalConfiguration(f);
 
-                intervalTB.Text = proj.interval.ToString();                     //  загружаем интервал автоматического обновления
-                Symbols.Text = proj.ticker;                                     //  устанавливаем выбранный тикер
+                Timeout = proj.interval;                     //  загружаем интервал автоматического обновления
+                symbolSelector.SetPair(proj.symbol); //  установим торговую пару по умолчанию
+                balance.Tokens = new string[] { symbolSelector.Trade, symbolSelector.Stable };
+                followA.FailFallLevel=proj.FailFall;
+                followA.FailRaiseLevel = proj.FailRise;
+                followA.RangeBuy = proj.WinFall;
+                followA.Range = proj.WinRise;
+                followA.Mode = proj.LastMode;
+                followA.BasePrice=proj.BasePrice;
             }
             catch (Exception ex)
             {
@@ -304,39 +401,5 @@ namespace BinanceCore
             fractalsSP.Children.Clear();                                    //  удаляем содержимое списка фракталов если там остались старые
         }
 
-        private void intervalTB_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            intervalTB.TrySaveInt(out timeout);
-        }
-
-        private void SellBTCClicked(object sender, RoutedEventArgs e)
-        {
-            var bal = GetBalance("BTC");
-            bal = ((int)(bal * 10000)) / 10000M;
-
-            var res=client.PlaceOrder(  "BTCUSDT",                                              //  Биткоин
-                                Binance.Net.Enums.OrderSide.Sell,                   //  продаём
-                                Binance.Net.Enums.OrderType.Market,
-                                bal);    //  по доступной цене
-            if (res.Data == null)
-                telega.MessageMaster($"Не могу продать {bal} BTC");
-            Console.Write(res.ToString());
-        }
-
-        private void BuyBTCClicked(object sender, RoutedEventArgs e)
-        {
-            var bal = GetBalance("USDT");
-            var will = ((int)(1000*bal / LastPrice))/1000M;
-
-            var res = client.PlaceOrder("BTCUSDT",                                              //  Биткоин
-                                Binance.Net.Enums.OrderSide.Buy,                   //  продаём
-                                Binance.Net.Enums.OrderType.Market,
-                                will);    //  по доступной цене
-            if (res.Data == null)
-                telega.MessageMaster($"Не могу купить {bal} BTC");
-
-            Console.Write(res.ToString());
-
-        }
     }
 }

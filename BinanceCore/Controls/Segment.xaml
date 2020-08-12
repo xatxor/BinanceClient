@@ -6,9 +6,9 @@
              xmlns:local="clr-namespace:BinanceCore"
              mc:Ignorable="d" 
              d:DesignHeight="98" d:DesignWidth="54">
-    <Grid>
-        <TextBox x:Name="maxDTB" HorizontalAlignment="Stretch" Height="22" Text="100" VerticalAlignment="Top" FontSize="16" FontFamily="Arial" TextChanged="maxDTB_TextChanged" />
-        <Canvas Margin="0 22">
+    <Grid x:Name="TopLevelController">
+        <TextBox x:Name="maxDTB" HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MaxD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" FontSize="16" FontFamily="Arial" />
+        <Canvas Margin="0 22" ClipToBounds="True">
             <Path Fill="Red" Stroke="Black">
                 <Path.Data>
                     <PathGeometry>
@@ -29,8 +29,8 @@
                 </Path.Data>
             </Path>
         </Canvas>
-        <Button Margin="0 22" x:Name="graphB" Content="▬" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="20" Opacity="0.4" Click="graphB_Click"/>
-        <TextBox x:Name="minDTB" HorizontalAlignment="Stretch" Height="22" Text="100" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="16" TextChanged="minDTB_TextChanged" />
+        <Button Margin="0 22" x:Name="graphB" Content="▬" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="20" Opacity="0.4" />
+        <TextBox x:Name="minDTB" HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MinD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="16" />
 
     </Grid>
 </UserControl>

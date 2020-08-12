@@ -5,26 +5,35 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BinanceCore.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="100" d:DesignWidth="200">
-    <Grid>
+             d:DesignHeight="200" d:DesignWidth="426">
+    <Grid x:Name="TopLevelController">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="4*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
-        <Button x:Name="modeB" Content="Жду падения"/>
-        <CheckBox x:Name="activeCB" Content="Активен" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-        <Button Content="Базовый уровень" Grid.Row="1" Click="BasePriceB_Click"/>
-        <TextBox x:Name="baseTB" Text="100" Grid.Row="1" Grid.Column="1"/>
-        <Label Content="Размах" Grid.Row="2"/>
-        <TextBox x:Name="rangeTB" Text="10" Grid.Row="2" Grid.Column="1"/>
-        <Label Content="Сброс уровня" Grid.Row="2" Grid.Column="2"/>
-        <TextBox x:Name="failTB" Text="3" Grid.Row="2" Grid.Column="3"/>
+        <Button x:Name="modeB" Content="Жду роста" Grid.Row="1" Grid.ColumnSpan="3"/>
+        <CheckBox x:Name="activeCB" Content="Активен" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <Button Content="Прошлый курс" Grid.Row="0" Grid.Column="1" Grid.RowSpan="1" Click="BasePriceB_Click" ToolTip="Нажми чтобы записать последний курс с графика в базовый уровень"/>
+        <TextBox x:Name="baseTB" Text="{Binding Path=BasePrice, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="0" Grid.Column="2" ToolTip="Тот курс, при котором состоялся прошлый обмен, или тот, при котором был зафиксирован убыток."/>
+        <Label Content="продавать при росте на (%)" Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
+        <TextBox x:Name="rangeTB" Text="{Binding Path=Range, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="2" Grid.Column="2"/>
+        <Label Content="прекращать ждать роста при падении на (%)" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
+        <TextBox x:Name="failTB" Text="{Binding Path=FailRaiseLevel, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="3" Grid.Column="2"/>
+        <Label Content="покупать при падении на (%)" Grid.Row="4" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
+        <TextBox x:Name="rangeBuyTB" Text="{Binding Path=RangeBuy, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  Grid.Row="4" Grid.Column="2"/>
+        <Label Content="прекращать ждать падения при росте на (%)" Grid.Row="5" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
+        <TextBox x:Name="failFallTB" Text="{Binding Path=FailFallLevel, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="5" Grid.Column="2"/>
+        <Label Content="выигрыш если обменять сейчас (%)" Grid.Row="6" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
+        <Label x:Name="winNowL" Content="???" Grid.Row="7" Grid.Column="2"/>
     </Grid>
 </UserControl>

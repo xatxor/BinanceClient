@@ -58,12 +58,14 @@ namespace BinanceCore
         /// </summary>
         /// <param name="input">текстбокс</param>
         /// <param name="output">приёмник числа</param>
-        public static void TrySaveInt(this TextBox input, out int output)
+        public static int TrySaveInt(this TextBox input, int defaultValue)
         {
+            int output=defaultValue;
             if (!int.TryParse(input.Text, out output))
                 input.Background = System.Windows.Media.Brushes.Pink;
             else
                 input.Background = System.Windows.Media.Brushes.White;
+            return output;
         }
 
         /// <summary>
@@ -87,4 +89,7 @@ namespace BinanceCore
         }
 
     }
+
+    public delegate void LogDgt(object sender, string msg);
+
 }
