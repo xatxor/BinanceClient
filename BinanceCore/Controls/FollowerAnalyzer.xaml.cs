@@ -75,7 +75,7 @@ namespace BinanceCore.Controls
             {
                 if (basePrice == value) return;
                 basePrice = value;
-                Log($"Base Price set to {value}");
+                Log($"<code>Base Price: {value.ToString().TrimEnd('0')}</code>");
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BasePrice"));
             }
         }
@@ -97,7 +97,7 @@ namespace BinanceCore.Controls
         public Mode Mode
         {
             get => mode;
-            set { mode = value; modeB.Content=mode==Mode.WAIT_FALL? "Жду падения, у меня стейбл" : "Жду роста, у меня есть токены"; Log($"Mode Price set to {value}"); }
+            set { mode = value; modeB.Content=mode==Mode.WAIT_FALL? "Жду падения, у меня стейбл" : "Жду роста, у меня есть токены"; Log($"<code>      Mode: {value}</code>"); }
         }
         decimal latestPrice = 0;
         /// <summary>
