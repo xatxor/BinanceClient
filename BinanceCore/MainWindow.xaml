@@ -6,60 +6,23 @@
         xmlns:local="clr-namespace:BinanceCore"
         xmlns:Controls="clr-namespace:BinanceCore.Controls" x:Class="BinanceCore.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="480" Width="1190">
-    <Grid>
+        Title="MainWindow" Height="401" Width="1089">
+    <Grid x:Name="TopLevelContainer">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="80px"/>
             <ColumnDefinition Width="640px"/>
-            <ColumnDefinition Width="468px"/>
+            <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="320px"/>
-            <RowDefinition Height="138px"/>
-        </Grid.RowDefinitions>
-        <StackPanel>
-            <ComboBox Height="30" x:Name="Symbols" />
-            <Button Content="Graph" Click="Graph_Clicked"/>
-            <Button Content="Find Fractal" Click="FindFractal_Clicked"/>
-            <StackPanel Orientation="Horizontal" Margin="0 20 0 5">
-
-                <TextBox x:Name="intervalTB" Text="30" FontSize="16" Width="50" TextChanged="intervalTB_TextChanged"/>
-                <Label Content="sec"/>
-            </StackPanel>
-            <CheckBox Content="Auto" Unchecked="CheckBox_Checked" RenderTransformOrigin="0.5,0" Width="50" Checked="CheckBox_Checked">
-                <CheckBox.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
-                        <SkewTransform/>
-                        <RotateTransform/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </CheckBox.RenderTransform>
-            </CheckBox>
-            <CheckBox Content="Short" RenderTransformOrigin="0.5,0" Width="50" Margin="0 10" x:Name="shortCB" IsChecked="True">
-                <CheckBox.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
-                        <SkewTransform/>
-                        <RotateTransform/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </CheckBox.RenderTransform>
-            </CheckBox>
-            <!--            <Button Content="Stop"  Click="Button_Click_1" />
-            <Button Content="Go" Click="Button_Click"/> -->
-        </StackPanel>
-        <Grid Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="Black" >
+        <Grid Background="Black" >
             <Image x:Name="iv"/>
             <Canvas x:Name="canv"/>
         </Grid>
-        <Grid Grid.RowSpan="2" Grid.Column="2">
+        <Grid Grid.RowSpan="3" Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal">
-                <Button x:Name="addFractalB" Content="Add Fractal" Click="addFractalB_Click"/>
+
                 <Button x:Name="saveB" Content="Save Configuration" Click="saveB_Click"/>
                 <Button x:Name="loadB" Content="Load Configuration" Click="loadB_Click"/>
             </StackPanel>
@@ -72,13 +35,46 @@
                     </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Fractals">
-                    <ScrollViewer HorizontalAlignment="Stretch">
-                        <StackPanel x:Name="fractalsSP" >
-                            <local:FractalConfiguration x:Name="fractalConfiga" />
-                        </StackPanel>
-                    </ScrollViewer>
+                    <StackPanel>
+                        <Button x:Name="addFractalB" Content="Add Fractal" Click="addFractalB_Click"/>
+                        <ScrollViewer HorizontalAlignment="Stretch">
+                            <StackPanel x:Name="fractalsSP" >
+                                <local:FractalConfiguration x:Name="fractalConfiga" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </StackPanel>
                 </TabItem>
             </TabControl>
         </Grid>
+        <Button Click="Graph_Clicked" Opacity="0.01"/>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Background="#50ffffff" Opacity=".75">
+            <TextBox x:Name="intervalTB" Text="{Binding  Path=Timeout, UpdateSourceTrigger=PropertyChanged}" FontSize="16" Width="26" BorderThickness="0" Background="DarkGray" Foreground="Black"/>
+            <Label Content="sec" Foreground="LightGray"/>
+            <CheckBox x:Name="autoCB" Content="Auto" Unchecked="CheckBox_Checked" RenderTransformOrigin="0.5,0" Width="50" Margin="30 3" Checked="CheckBox_Checked"  Foreground="LightGray">
+                <CheckBox.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                        <SkewTransform/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </CheckBox.RenderTransform>
+            </CheckBox>
+        </StackPanel>
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Background="#50ffffff" Width="100" Opacity=".75">
+            <Controls:PairSelector Height="60" x:Name="symbolSelector" Foreground="White"/>
+            <Controls:Balance x:Name="balance"  Height="38"  Foreground="White"/>
+            <Grid Height="30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Button Content="SELL" Click="SellBTCClicked" Grid.Column="1"/>
+                <Button Content="BUY" Click="BuyBTCClicked" />
+            </Grid>
+            <!--            <Button Content="Stop"  Click="Button_Click_1" />
+            <Button Content="Go" Click="Button_Click"/> -->
+        </StackPanel>
+
     </Grid>
 </Window>

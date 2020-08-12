@@ -32,7 +32,7 @@ namespace BinanceClient
             }
 
             SymbolsComboBox.SelectedItem =
-                "ETHBTC"; // выберем сразу хоть что-то чтобы не рухнуло если нажать выгрузку    
+                "BTCUSDT"; // выберем сразу хоть что-то чтобы не рухнуло если нажать выгрузку    
             StartTime.Value = DateTime.UtcNow.AddHours(-1); // выберем сразу последний час по UTC
             EndTime.Value = DateTime.UtcNow; // там записи имеют время в UTC чтобы весь мир пользовался
 
@@ -107,7 +107,7 @@ namespace BinanceClient
         int timeout = 0;
         int Timeout
         {
-            set { timeout = value; Text = $"BinanceClientc {(timeout>0?timeout.ToString():"")}"; }
+            set { timeout = value; Text = $"BinanceClient {(timeout>0?timeout.ToString():"")}"; }
             get => timeout;
         }
         private void timer1_Tick(object sender, EventArgs e)
@@ -163,7 +163,8 @@ namespace BinanceClient
             repos.AddBinanceInfo(tradesAndRates?
                         .Select(t =>
                             new BinanceInfo(t.AggregateTradeId, t.TradeTime, SelectedSymbol, t.Quantity, t.Price)
-                            )
+                            ),fullCB.Checked
+
                     );
         }
 

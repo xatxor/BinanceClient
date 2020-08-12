@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BinanceCore"
              mc:Ignorable="d" 
-             d:DesignHeight="138" d:DesignWidth="418">
+             d:DesignHeight="124" d:DesignWidth="418">
     <Grid>
         <StackPanel>
             <Grid>
@@ -14,19 +14,19 @@
                     <ColumnDefinition Width="355px"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="deleteB" Content="✕" Width="25" Click="deleteB_Click"/>
+                    <Button x:Name="deleteB" Content="✕" Width="25"/>
                     <CheckBox x:Name="activeCB" Content="" Width="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10 0" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1" >
                     <TextBox x:Name="SymbolTB" Width="20" Text="#" VerticalAlignment="Center"/>
                     <Label Content="Symbol"/>
-                    <Button x:Name="ShowColorPickerB" Content="Color" Padding="5 0" Margin="2 4" Click="ShowColorPicker_Click"/>
+                    <Button x:Name="ShowColorPickerB" Content="Color" Padding="5 0" Margin="2 4" />
                     <TextBox x:Name="NameTB" Width="150" Text="New Fractal" VerticalAlignment="Center"/>
                     <Label Content="Fractal Name"/>
                 </StackPanel>
             </Grid>
-            <local:FractalDesigner x:Name="Designer" Height="112" HorizontalAlignment="Stretch" />
+            <local:FractalDesigner x:Name="Designer" Height="98" HorizontalAlignment="Stretch" />
         </StackPanel>
         <local:ColorPicker x:Name="colorPicker" Grid.ColumnSpan="2" Background="White" Visibility="Hidden"/>
     </Grid>

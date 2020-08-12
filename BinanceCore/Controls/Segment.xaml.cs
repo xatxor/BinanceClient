@@ -1,39 +1,55 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace BinanceCore
 {
     /// <summary>
-    /// Логика взаимодействия для Segment.xaml
+    /// Редактор сегмента позволяет настроить числовые параметры и режим работы (рост, падение или плоский курс)
+    /// и отображает, диапазон возможного хода графика на сегменте.
     /// </summary>
-    public partial class Segment : UserControl
+    public partial class Segment : UserControl, INotifyPropertyChanged
     {
-        public delegate void ChangedDgt();
-        public event ChangedDgt Changed;
+        /// <summary>
+        /// Делитель процентов в настройках, то есть если в настройках рост на 100, а делитель 1000, значит настроен рост на 0.1
+        /// </summary>
+        public float Divisor = 1000F;
 
+        public delegate void ChangedDgt();
+        /// <summary>
+        /// Событие возникает если изменились параметры работы сегмента (минимум, максимум изменения или режим)
+        /// </summary>
+        public event ChangedDgt Changed;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Режимы работы сегмента - рост курса, падение или стоп - плоский курс
+        /// </summary>
         public enum SegmentMode { STOP = 0, UP = 1, DOWN = 2 }
+
+        /// <summary>
+        /// Символики режимов, которые используются на экране
+        /// </summary>
         string[] SIGNS = new string[] { "▬", "▲", "▼" };
+
+
         #region Входные параметры графика
 
         SegmentMode mode = SegmentMode.STOP;
+        /// <summary>
+        /// Режим сегмента - растущий или падающий или не растёт и не падает
+        /// </summary>
         public SegmentMode Mode
         {
             get { return mode; }
             set { 
                 mode = value;
+                UpdateOuts();
                 DrawGraph();
             }
         }
+
         int maxD = 10;
         /// <summary>
         /// Максимальный сдвиг курса в указанном Mode направлении (задаётся юзером)
@@ -43,8 +59,14 @@ namespace BinanceCore
             get { return maxD; }
             set {
                     maxD = value;
-                    maxDTB.Text = value.ToString();
-                }
+                    UpdateOuts();
+
+                    DrawGraph();
+                    if (null != this.PropertyChanged)
+                    {
+                        PropertyChanged(this, new PropertyChangedEventArgs("MaxD"));
+                    }
+            }
         }
 
         int minD = 10;
@@ -56,8 +78,13 @@ namespace BinanceCore
             get { return minD; }
             set {
                 minD = value;
-                minDTB.Text = value.ToString(); 
-            } 
+                UpdateOuts();
+                DrawGraph();
+                if (null != this.PropertyChanged)
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs("MinD"));
+                }
+            }
         }
 
         double inMin = 0.5;
@@ -88,20 +115,17 @@ namespace BinanceCore
             }
         }
 
-
+        /// <summary>
+        /// Установка режима сегмента по букве (используется при настройке по строковому коду)
+        /// </summary>
+        /// <param name="letter"></param>
         public void SetModeByLetter(string letter)
         {
             switch (letter)
             {
-                case "D":
-                    Mode = SegmentMode.DOWN;
-                    break;
-                case "U":
-                    Mode = SegmentMode.UP;
-                    break;
-                default:
-                    Mode = SegmentMode.STOP;
-                    break;
+                case "D":   Mode = SegmentMode.DOWN;    break;
+                case "U":   Mode = SegmentMode.UP;      break;
+                default:    Mode = SegmentMode.STOP;    break;
             }
         }
         #endregion
@@ -156,21 +180,22 @@ namespace BinanceCore
         }
         public void DrawGraph()
         {
-            if (graphB != null && graphB.RenderSize.Width>0)
+            if (graphB != null && graphB.RenderSize.Width>0)        //  Чит чтобы не рисовать когда окно не готово
             {
-                var h = graphB.RenderSize.Height;
+                var h = graphB.RenderSize.Height;                   //  определим размеры окошка, где рисуем
                 var w = graphB.RenderSize.Width;
-                pathStart.StartPoint = MakePoint(0, h - InMin * h);
-                pathP2.Point = MakePoint(0, h - InMax * h);
-                pathP3.Point = MakePoint(w - 1, h - OutMax * h);
-                pathP4.Point = MakePoint(w - 1, h - OutMin * h);
-                graphB.Content = SIGNS[(int)Mode];
+                pathStart.StartPoint = MakePoint(0, h - InMin * h); //  перенастроим точки многоугольника,
+                pathP2.Point = MakePoint(0, h - InMax * h);         //  символизирующего возможности хода крурса
+                pathP3.Point = MakePoint(w - 1, h - OutMax * h);    //  выставим точки слева на стартовый диапазон по InMin, InMax
+                pathP4.Point = MakePoint(w - 1, h - OutMin * h);    //  и точки справа на выходной согласно посчитанны OutMax, OutMin
+                graphB.Content = SIGNS[(int)Mode];  //  вывод символа роста, падения или плоского графика в кнопку на теле самого графика - если нажать эту кнопку, режим изменится
             }
         }
 
         /// <summary>
         /// Обновляет значения на выходах в соответствии со значениями на входах и режимом графика
         /// </summary>
+        /// <param name="silent">Отключает обработчик события об изменении в полях ввода чтобы на экран отражалось сразу, но не зацикливалось эвентами обновления в поле ввода</param>
         private void UpdateOuts(bool silent = false)
         {
             var oldHandler = Changed;
@@ -180,18 +205,18 @@ namespace BinanceCore
             switch (mode)
             {
                 case SegmentMode.STOP:
-                    OutMax = InMax + MaxD / 1000F;  //  при стопе график может вырасти не более чем на верхнее число
-                    OutMin = InMin - MinD / 1000F;  //  или упасть не более чем на нижнее число
+                    OutMax = InMax + MaxD / Divisor;  //  при стопе график может вырасти не более чем на верхнее число
+                    OutMin = InMin - MinD / Divisor;  //  или упасть не более чем на нижнее число
                     break;
 
                 case SegmentMode.UP:
-                    OutMax = InMax + MaxD / 1000F;  //  при росте график может вырасти не более чем на верхнее число
-                    OutMin = InMin + MinD / 1000F;  //  и не менее, чем на нижнее
+                    OutMax = InMax + MaxD / Divisor;  //  при росте график может вырасти не более чем на верхнее число
+                    OutMin = InMin + MinD / Divisor;  //  и не менее, чем на нижнее
                     break;
 
                 case SegmentMode.DOWN:
-                    OutMax = InMax - MinD / 1000F;  //  при падении график может упасть сверху не более, чем на нижнее число
-                    OutMin = InMin - MaxD / 1000F;  //  или упасть снизу не далее, чем на верхнее
+                    OutMax = InMax - MinD / Divisor;  //  при падении график может упасть сверху не более, чем на нижнее число
+                    OutMin = InMin - MaxD / Divisor;  //  или упасть снизу не далее, чем на верхнее
                     break;
             }
             if (silent)
@@ -202,34 +227,14 @@ namespace BinanceCore
         public Segment()
         {
             InitializeComponent();
-            Redraw();
-        }
-
-        private void graphB_Click(object sender, RoutedEventArgs e)
-        {
-            int maxMode = SIGNS.Length - 1; //  выясним максимально возможный номер режима
-            if ((int)Mode < maxMode) ++Mode;//  если сейчас ещё не максимальный номер, то увеличим номер режима
-            else Mode = 0;                  //  если уже последний режим, то возвращаемся к нулевому
-            Redraw();
-        }
-
-        private void maxDTB_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            maxDTB.TrySaveInt(out maxD);
-            Redraw();
-        }
-
-        private void minDTB_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            minDTB.TrySaveInt(out minD);
-            Redraw();
-        }
-
-        private void Redraw()
-        {
+            graphB.Click+=(b,a) => Mode = Mode > 0 ? --Mode : SegmentMode.DOWN; //  циклическое переключение режимов при нажатии на кнопку режима (она же отображает символ режима)
+            DataContext = this;
             UpdateOuts();
             DrawGraph();
+            TopLevelController.DataContext = this;  //  чтобы работали биндинги
         }
+
+
 
 
     }
