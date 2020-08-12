@@ -132,7 +132,8 @@ namespace BinanceCore
         }
         private async void FollowA_LostFall(Controls.FollowerAnalyzer sender)
         {
-            await Alert("Не дождались падения - растёт! Может купить?.. курс по паре: " + LastPriceTrimmed);
+            await Alert("Не дождались падения - растёт! Покупаем.. курс по паре: " + LastPriceTrimmed);
+            BuyBTCClicked(null, null);
         }
 
         private async void FollowA_GotRise(Controls.FollowerAnalyzer sender)
