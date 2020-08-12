@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -20,19 +21,16 @@ namespace BinanceCore.TelegramBot
         public delegate void GotMessageDgt(string msg, long chatid);
         public event GotMessageDgt GotMessage;
 
-        public delegate void GotUserDgt(int from, string username, string firstname, string lastname);
-        public event GotUserDgt GotUser;
-
         public delegate void LogDgt(string msg);
         public event LogDgt Log;
 
         private TelegramBotClient _bot;
-        int _master;
+        long _master;
         int lastMessageID = -1;
         private CommandProcessor processor;
-        public Telega(string key, int master)
+        public Telega(string key, long master)
         {
-            _bot = new TelegramBotClient(key/*,new WebProxy("116.203.82.48",8080)*/);
+            _bot = new TelegramBotClient(key);
             _master = master;
             _bot.OnMessage += OnMessage;
             _bot.OnCallbackQuery += OnCallback;
@@ -40,14 +38,8 @@ namespace BinanceCore.TelegramBot
             GotMessage += Bot_GotMessage;
             GotCommand += Bot_GotCommand;
             Log += Bot_Log;
-            GetCommands();
         }
-        private void GetCommands()
-        {
-            processor.Register("status", new Commands.Status());
-            processor.Register("buy", new Commands.Buy());
-            processor.Register("sell", new Commands.Sell());
-        }
+
         private void OnCallback(object sender, CallbackQueryEventArgs e)
         {
             MessageHandler(e.CallbackQuery.Data, e.CallbackQuery.Message.Chat.Id);
@@ -73,16 +65,10 @@ namespace BinanceCore.TelegramBot
 
         async private void Bot_GotCommand(string cmd, string[] args, long chatid)
         {
-            if (args != null && processor.HaveArgs(cmd))
+            if (processor.CanProcess(cmd))
                 processor.ProcessCommand(cmd, args, chatid);
-            else if(args == null && !processor.HaveArgs(cmd))
-                processor.ProcessCommand(cmd, args, chatid);
-            else if (args != null && !processor.HaveArgs(cmd))
-                await TextMessage("Команда /" + cmd + " не принимает параметры", chatid);
-            else if (args == null && processor.HaveArgs(cmd))
-                await TextMessage("Команда /" + cmd + " принимает параметры", chatid);
             else
-                await TextMessage("Я не понимаю тебя", chatid);
+                await TextMessage("Не удалось найти команду " + cmd, chatid);
         }
 
         private void Bot_GotMessage(string msg, long chatid)
@@ -109,11 +95,11 @@ namespace BinanceCore.TelegramBot
             }
         }
 
-        async internal Task<int> PhotoMessage(string photopath, long chatid, string caption = null)
+        async internal Task<int> PhotoMessage(Stream stream, long chatid, string caption = null)
         {
             try
             {
-                var sentMsg = await _bot.SendPhotoAsync(chatid, photopath, caption);
+                var sentMsg = await _bot.SendPhotoAsync(chatid, stream, caption);
                 UpdateLastMessageID(sentMsg);
                 return sentMsg.MessageId;
             }
@@ -126,12 +112,12 @@ namespace BinanceCore.TelegramBot
 
         async internal Task<int> TextMessageMaster(string v)
         {
-            return await TextMessage(v,_master);
+            return await TextMessage(v, _master);
         }
 
-        async internal Task<int> PhotoMessageMaster(string photopath, string caption = null)
+        async internal Task<int> PhotoMessageMaster(Stream stream, string caption = null)
         {
-            return await PhotoMessage(photopath, _master, caption);
+            return await PhotoMessage(stream, _master, caption);
         }
 
         private void UpdateLastMessageID(Message sentMsg)
