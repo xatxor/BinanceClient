@@ -143,7 +143,7 @@ namespace BinanceCore
             SellBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.MessageMaster("<code>   Balance:  " + balance.BalInfo.Replace("\n","\n             ")+"</code>");
+            await telega.MessageMaster("<code>Balance " + balance.BalInfo.Replace("\n","\n        ")+"</code>");
         }
 
         private async void FollowA_GotFall(Controls.FollowerAnalyzer sender)
@@ -153,7 +153,7 @@ namespace BinanceCore
             BuyBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.MessageMaster("<code>   Balance:  " + balance.BalInfo.Replace("\n", "\n             ") + "</code>");
+            await telega.MessageMaster("<code>Balance " + balance.BalInfo.Replace("\n", "\n        ") + "</code>");
         }
         #endregion
 

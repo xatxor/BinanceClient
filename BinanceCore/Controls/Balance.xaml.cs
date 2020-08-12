@@ -73,7 +73,7 @@ namespace BinanceCore.Controls
             {
                 balanceTB.Text = "";
                 foreach (var token in Tokens)
-                    balanceTB.Text += $"{token.PadLeft(5)}: {GetBalance(token).ToString("######0.#######").TrimEnd('0')}\n";
+                    balanceTB.Text += $"{token.PadLeft(5)}: {GetBalance(token).ToString("0.#######").PadLeft(14).TrimEnd('0')}\n";
                 Blink();
             }
             catch (Exception ex) {
