@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Binance.Net.Objects.Spot.MarketData;
-using BinanceCore.TelegramBot.Commands;
 
 namespace BinanceCore.TelegramBot
 {

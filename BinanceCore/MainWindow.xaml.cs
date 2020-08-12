@@ -290,7 +290,7 @@ namespace BinanceCore
             }
         }
 
-        private async void SellBTCClicked(object sender, RoutedEventArgs e)
+        private async void BaseCommand(long chatid)
         {
             decimal baseprice = followA.BasePrice;
             await telega.TextMessage("Базовая цена: " + baseprice, chatid);
