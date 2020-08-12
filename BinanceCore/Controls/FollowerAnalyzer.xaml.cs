@@ -196,34 +196,30 @@ namespace BinanceCore.Controls
 
             if (Mode == Mode.WAIT_FALL)
             {
-                if (dp > range)
+                if (dp > range && dp>0)
                 {
                     GotFall(this);
                     Mode = Mode.WAIT_RISE;
                     BasePrice = newPrice;
                 }
                 else
-                if (dp < -FailFallLevel)
+                if (dp < -FailFallLevel && dp<0)
                 {
                     LostFall(this);
-                    if (basePrice + (range * FailRaiseLevel) < newPrice)
-                        BasePrice = newPrice;
                 }
             }
             else
             {
-                if (-dp> rangeBuy)
+                if (-dp> rangeBuy && dp<0)
                 {
                     GotRise(this);
                     Mode = Mode.WAIT_FALL;
                     BasePrice = newPrice;
                 }
                 else
-                if (dp>-FailRaiseLevel)
+                if (dp>FailRaiseLevel && dp>0)
                 {
                     LostRise(this);
-                    if (BasePrice - (range * FailRaiseLevel) > newPrice)
-                        BasePrice = newPrice;
                 }
             }
 
