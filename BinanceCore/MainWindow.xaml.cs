@@ -109,7 +109,7 @@ namespace BinanceCore
         TimeSpan alertInterval = new TimeSpan(0, 3, 0);
         private async void FollowA_LostRise(Controls.FollowerAnalyzer sender)
         {
-            await Alert("Не дождались роста - падает! Продаём и ждём падения.. курс по паре: " + LastPriceTrimmed);
+            await Alert("<code> Rise Lost! " + LastPriceTrimmed+" SOLD</code>");
             SellBTCClicked(null, null);
         }
 
@@ -132,28 +132,28 @@ namespace BinanceCore
         }
         private async void FollowA_LostFall(Controls.FollowerAnalyzer sender)
         {
-            await Alert("Не дождались падения - растёт! Покупаем.. курс по паре: " + LastPriceTrimmed);
+            await Alert("<code> Fall Lost! " + LastPriceTrimmed+" BOUGHT</code>");
             BuyBTCClicked(null, null);
         }
 
         private async void FollowA_GotRise(Controls.FollowerAnalyzer sender)
         {
             balance.UpdateBalance();
-            await telega.MessageMaster("Курс вырос! Продаю по " + LastPriceTrimmed+"\nБудем ждать падения и купим снова.\n" + balance.BalInfo);
+            await telega.MessageMaster("<code>  Win Rise! " + LastPriceTrimmed+"</code>");
             SellBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.MessageMaster("Теперь у нас\n" + balance.BalInfo);
+            await telega.MessageMaster("<code>   Balance:  " + balance.BalInfo.Replace("\n","\n             ")+"</code>");
         }
 
         private async void FollowA_GotFall(Controls.FollowerAnalyzer sender)
         {
             balance.UpdateBalance();
-            await telega.MessageMaster("Курс упал! Покупаю по " + LastPriceTrimmed + "\nБудем ждать роста и продадим.\n"+balance.BalInfo);
+            await telega.MessageMaster("<code>  Win Fall! " + LastPriceTrimmed + "</code>");
             BuyBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.MessageMaster("Теперь у нас\n" + balance.BalInfo);
+            await telega.MessageMaster("<code>   Balance:  " + balance.BalInfo.Replace("\n", "\n             ") + "</code>");
         }
         #endregion
 
