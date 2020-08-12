@@ -219,7 +219,7 @@ namespace BinanceCore.Controls
                     BasePrice = newPrice;
                 }
                 else
-                if (dp<-FailRaiseLevel)
+                if (dp>-FailRaiseLevel)
                 {
                     LostRise(this);
                     if (BasePrice - (range * FailRaiseLevel) > newPrice)
