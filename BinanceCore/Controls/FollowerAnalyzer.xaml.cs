@@ -212,7 +212,7 @@ namespace BinanceCore.Controls
             }
             else
             {
-                if (dp< -range)
+                if (-dp> rangeBuy)
                 {
                     GotRise(this);
                     Mode = Mode.WAIT_FALL;

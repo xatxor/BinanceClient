@@ -109,7 +109,8 @@ namespace BinanceCore
         TimeSpan alertInterval = new TimeSpan(0, 3, 0);
         private async void FollowA_LostRise(Controls.FollowerAnalyzer sender)
         {
-            await Alert("Не дождались роста - падает! Может продать?.. курс по паре: " + LastPriceTrimmed);
+            await Alert("Не дождались роста - падает! Продаём и ждём падения.. курс по паре: " + LastPriceTrimmed);
+            SellBTCClicked(null, null);
         }
 
         private string LastPriceTrimmed=>
@@ -279,7 +280,10 @@ namespace BinanceCore
                                 Binance.Net.Enums.OrderType.Market,
                                 bal);    //  по доступной цене
             if (res.Data != null)
+            {
                 followA.Mode = Controls.Mode.WAIT_FALL;
+                followA.BasePrice = LastPrice;
+            }
             else
                 await telega.MessageMaster($"Не могу продать {bal} {TradingToken}");
 
@@ -297,8 +301,8 @@ namespace BinanceCore
             try
             {
                 var bal = GetBalance(StableToken);
+                bal *= 0.99M;
                 var will = ((int)(10000 * bal / LastPrice)) / 10000M;
-
                 var res = client.PlaceOrder(SelectedPair,                               //  торговую монету в паре
                                     Binance.Net.Enums.OrderSide.Buy,                   //  покупаем
                                     Binance.Net.Enums.OrderType.Market,
@@ -306,6 +310,7 @@ namespace BinanceCore
                 if (res.Data != null)
                 {
                     followA.Mode = Controls.Mode.WAIT_RISE;
+                    followA.BasePrice = LastPrice;
                 }
                 else
                     await telega.MessageMaster($"Не могу купить {will} {TradingToken}");
