@@ -16,6 +16,10 @@ using System.Windows.Shapes;
 
 namespace BinanceCore.Controls
 {
+    /// TODO: Добавить доллары в баланс чтобы видеть суммарный капитал. Учитывать трейд монету с вычетом цены конвертации
+    /// TODO: Добавить панель настроек с комиссией и ключами от телеги и бинанса
+    /// TODO: Переключить телегу на канал
+
     /// <summary>
     /// Панель отображения монет на балансе бинанса.
     /// Для работы использует клиент соединения с бинансом (нужно настроить через BinanceClient).
@@ -33,7 +37,7 @@ namespace BinanceCore.Controls
         /// <summary>
         /// Балансы будут выгружаться по указанным валютам
         /// </summary>
-        public string [] Tokens = { "BTC", "USDT" };
+        public string[] Tokens = { "BTC", "USDT" };
         public Balance()
         {
             InitializeComponent();
@@ -62,7 +66,14 @@ namespace BinanceCore.Controls
         /// <summary>
         /// Быстрая возможность получить текст баланса
         /// </summary>
-        public string BalInfo => balanceTB.Text.ToString();
+        public string BalInfo
+        {
+            get   {
+                var bal = "";
+                    Application.Current.Dispatcher.Invoke(  () =>   bal = balanceTB.Text    );
+                return bal;
+            }
+        }
         /// <summary>
         /// Пишет в на экран (в текстблок) баланс всех заданных в Tokens токенов по одному токену в строку
         /// В случае ошибки генерирует сообщение через эвент Log

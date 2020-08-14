@@ -65,7 +65,8 @@ namespace BinanceCore
         int timePassed = 0;
         Timer timer = new Timer(1000);
 
-        Telega telega = new Telega("1294746661:AAGeFjeIBPTvG2pUhcdflPD4Nc_pj8ExdXI", -1001381908289);
+        Telega telega;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -90,17 +91,57 @@ namespace BinanceCore
             symbolSelector.TradeSet += symbolChanged;           //  нужно выполнить некоторую актуализацию
 
             TopLevelContainer.DataContext = this;               //  Чтобы работали биндинги
-
             processor.Sell += SellCommand;
             processor.Buy += BuyCommand;
             processor.Bal += BalCommand;
-            processor.Base += BaseCommand;
+            processor.SetBase += SetBaseCommand;
             processor.Graph += GraphCommand;
+            processor.Go += StartCommand;
             processor.Stop += StopCommand;
+            processor.Help += HelpCommand;
+            telega = new Telega("1294746661:AAGeFjeIBPTvG2pUhcdflPD4Nc_pj8ExdXI", 109159596);
+            telega.GotMessage += Bot_GotMessage;
+            telega.GotCommand += Bot_GotCommand;
 
-            Task.Run(async () => await telega.TextMessageMaster("BinanceCore v.0.1 started."));
+            Task.Run(async () => await telega.TextMessageMaster("BinanceCore v.0.5 started."));
         }
 
+        private async void HelpCommand(long chatid)
+        {
+            await telega.TextMessage($"Commands:\n" +
+                "/buy - buy trading coins\n" +
+                "/sell - sell trading coins\n" +
+                "/graph - show graph\n" +
+                "/bal - show balance\n" +
+                "/base - set base value\n" +
+                "/stop - stop trading\n" +
+                "/go - start trading\n" +
+                "/help - show help\n" +
+                "STATUS:\n" +
+                $"Timer: {(timer.Enabled?"ON":"OFF")}   " +
+                $"Follower: {(followA.Active ? "ON" : "OFF")}\n" +
+                $"Price base/last: {followA.BasePrice} / {LastPrice}\n" +
+                $"Mode: {followA.mode}\n"+
+                $"Rise 🌟:{followA.Range} ☠:{ followA.FailRaiseLevel}\n" +
+                $"Fall 🌟: {followA.RangeBuy} ☠: {followA.FailFallLevel}\n"
+                ,chatid);
+        }
+
+        async private void Bot_GotCommand(Telega _bot, string cmd, string[] args, long chatid)
+        {
+            await Application.Current.Dispatcher.Invoke(async () =>
+            {
+                if (processor.CanProcess(cmd))
+                    processor.ProcessCommand(cmd, args, chatid);
+                else
+                    await _bot.TextMessage("Не удалось найти команду " + cmd, chatid);
+            });
+        }
+
+        private async void Bot_GotMessage(Telega _bot, string msg, long chatid)
+        {
+            await _bot.TextMessage("Бот понимает только команды, начинающиеся с /", chatid);
+        }
         private void symbolChanged(string data)
         {
             balance.Tokens = new string[] { symbolSelector.Trade, symbolSelector.Stable };
@@ -123,11 +164,11 @@ namespace BinanceCore
         TimeSpan alertInterval = new TimeSpan(0, 3, 0);
         private async void FollowA_LostRise(Controls.FollowerAnalyzer sender)
         {
-            await Alert("<code> Rise Lost! " + LastPriceTrimmed+" SOLD</code>");
+            await Alert("<code>☠Rise Lost! " + LastPriceTrimmed + " SOLD</code>");
             SellBTCClicked(null, null);
         }
 
-        private string LastPriceTrimmed=>
+        private string LastPriceTrimmed =>
             LastPrice.ToString().TrimEnd('0');
 
         /// <summary>
@@ -146,24 +187,24 @@ namespace BinanceCore
         }
         private async void FollowA_LostFall(Controls.FollowerAnalyzer sender)
         {
-            await Alert("<code> Fall Lost! " + LastPriceTrimmed+" BOUGHT</code>");
+            await Alert("<code>☠Fall Lost! " + LastPriceTrimmed + " BOUGHT</code>");
             BuyBTCClicked(null, null);
         }
 
         private async void FollowA_GotRise(Controls.FollowerAnalyzer sender)
         {
             balance.UpdateBalance();
-            await telega.TextMessageMaster("<code>  Win Rise! " + LastPriceTrimmed+"</code>");
+            await telega.TextMessageMaster("<code>🌟 Win Rise! " + LastPriceTrimmed + "</code>");
             SellBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.TextMessageMaster("<code>Balance " + balance.BalInfo.Replace("\n","\n        ")+"</code>");
+            await telega.TextMessageMaster("<code>Balance " + balance.BalInfo.Replace("\n", "\n        ") + "</code>");
         }
 
         private async void FollowA_GotFall(Controls.FollowerAnalyzer sender)
         {
             balance.UpdateBalance();
-            await telega.TextMessageMaster("<code>  Win Fall! " + LastPriceTrimmed + "</code>");
+            await telega.TextMessageMaster("<code>🌟 Win Fall! " + LastPriceTrimmed + "</code>");
             BuyBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
@@ -247,10 +288,10 @@ namespace BinanceCore
             var graphDuration = new TimeSpan(1, 0, 0, 0);
 
             cache.RemoveAll(r => r.Time < fin.AddDays(-graphDuration.TotalDays));       //   убираем из кэша устаревшие данные (те что в прошлом за пределами графика)
-
+            long _last = LastCached;
             var BinanceInfo = repos.GetRangeOfElementsByTime(                           // Выгрузим из БД записи по дате
                     fin.Subtract(graphDuration), fin, SelectedPair, true)   // до текущего момента на длину графика заданную пару с учётом полноты SHORT
-                .Where(tr => tr.Id > LastCached);                                       // и выберем оттуда только те записи, у которых номера больше, чем нам уже известны и есть в кэше
+                .Where(tr => tr.Id > _last);                                       // и выберем оттуда только те записи, у которых номера больше, чем нам уже известны и есть в кэше
 
             cache.AddRange(BinanceInfo);                                                // добавляем свежие данные в кэш
 
@@ -264,12 +305,13 @@ namespace BinanceCore
         {
             CreateFractalConfiguration();
         }
-        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        private async void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
             timePassed = 0;
             timer.Enabled = autoCB.IsChecked == true;
             if (!timer.Enabled)
                 autoCB.Content = "AUTO";
+            await telega.TextMessageMaster($"AUTO: {(autoCB.IsChecked == true ? "ON" : "OFF")}");
         }
 
         private void saveB_Click(object sender, RoutedEventArgs e)
@@ -290,32 +332,47 @@ namespace BinanceCore
             }
         }
 
-        private async void BaseCommand(long chatid)
+        private async void SetBaseCommand(long chatid)
         {
-            decimal baseprice = followA.BasePrice;
-            await telega.TextMessage("Базовая цена: " + baseprice, chatid);
+            await telega.TextMessage("Базовая цена была " + followA.BasePrice, chatid);
+            followA.BasePrice=LastPrice;
         }
         private async void GraphCommand(long chatid)
         {
             var bmp = GetGraph();
+
+            var bg = new Bitmap(bmp);                       //  Создадим битмап с аналогичными графику параметрами
+            using (var g = Graphics.FromImage(bg))          //  сделаем из него холст
+            {
+                g.Clear(System.DrawingCore.Color.Black);    //  и кинем туда чёрный фон
+                g.DrawImage(bmp, 0, 0);                      //  сверху наложим график
+            }
+
             using (MemoryStream stream = new MemoryStream())
             {
-                bmp.Save(stream, ImageFormat.Png);
+                bg.Save(stream, ImageFormat.Png);
+                stream.Seek(0, SeekOrigin.Begin);
                 await telega.PhotoMessage(stream, chatid, "График на данный момент - " + DateTime.UtcNow);
             }
         }
         private async void StopCommand(long chatid)
         {
-            timer.Stop();
-            await telega.TextMessage("Таймер остановлен", chatid);
+            await telega.TextMessage("Stoping auto update", chatid);
+            followA.Active = false;
         }
         private async void BalCommand(long chatid)
         {
             var bal = balance.BalInfo;
             await telega.TextMessage(bal, chatid);
         }
+        private async void StartCommand(long chatid)
+        {
+            await telega.TextMessage("Starting auto update", chatid);
+            followA.Active = true;
+        }
         private async void SellCommand(long chatid)
         {
+            await telega.TextMessage($"Продаю {TradingToken}", chatid);
             var data = Sell();
             if (data == null)
                 await telega.TextMessage($"Не могу продать", chatid);
@@ -332,7 +389,7 @@ namespace BinanceCore
             try
             {
                 var bal = GetBalance(TradingToken);
-                bal = ((int) (bal * 10000)) / 10000M;
+                bal = ((int)(bal * 10000)) / 10000M;
 
                 var res = client.PlaceOrder(SelectedPair, // торговую монету в паре
                     Binance.Net.Enums.OrderSide.Sell, //  продаём
@@ -360,13 +417,38 @@ namespace BinanceCore
         }
 
         #region Быстрый доступ на чтение к выбранной паре токенов
-        private string SelectedPair => symbolSelector.Symbol;
-        private string TradingToken => symbolSelector.Trade;
-        private string StableToken => symbolSelector.Stable;
+        private string SelectedPair
+        {
+            get
+            {
+                var s = "";
+                Application.Current.Dispatcher.Invoke(() => s = symbolSelector.Symbol);
+                return s;
+            }
+        }
+        private string TradingToken
+        { 
+            get
+            {
+                var s = "";
+                Application.Current.Dispatcher.Invoke(()=>s=symbolSelector.Trade);
+                return s;
+            }
+        }
+        private string StableToken
+        {
+            get
+            {
+                var s = "";
+                Application.Current.Dispatcher.Invoke(() => s = symbolSelector.Stable);
+                return s;
+            }
+        }
         #endregion
 
         private async void BuyCommand(long chatid)
         {
+            await telega.TextMessage($"Покупаю {TradingToken}", chatid);
             var data = Buy();
             if (data == null)
                 await telega.TextMessage($"Не могу купить", chatid);
@@ -400,7 +482,6 @@ namespace BinanceCore
                     {
                         return telega.TextMessageMaster($"Не могу купить {will} {TradingToken}");
                     });
-                Console.Write(res.ToString());
                 return res.Data;
             }
             catch (Exception ex)

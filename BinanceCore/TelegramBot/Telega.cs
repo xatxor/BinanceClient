@@ -15,10 +15,10 @@ namespace BinanceCore.TelegramBot
 {
     class Telega
     {
-        public delegate void GotCommandDgt(string cmd, string[] args, long chatid);
+        public delegate void GotCommandDgt(Telega _bot, string cmd, string[] args, long chatid);
         public event GotCommandDgt GotCommand;
 
-        public delegate void GotMessageDgt(string msg, long chatid);
+        public delegate void GotMessageDgt(Telega _bot, string msg, long chatid);
         public event GotMessageDgt GotMessage;
 
         public delegate void LogDgt(string msg);
@@ -27,7 +27,7 @@ namespace BinanceCore.TelegramBot
         private TelegramBotClient _bot;
         long _master;
         int lastMessageID = -1;
-        private CommandProcessor processor;
+        private CommandProcessor processor=new CommandProcessor();
         public Telega(string key, long master)
         {
             _bot = new TelegramBotClient(key);
@@ -35,8 +35,6 @@ namespace BinanceCore.TelegramBot
             _bot.OnMessage += OnMessage;
             _bot.OnCallbackQuery += OnCallback;
             _bot.StartReceiving();
-            GotMessage += Bot_GotMessage;
-            GotCommand += Bot_GotCommand;
             Log += Bot_Log;
         }
 
@@ -57,24 +55,12 @@ namespace BinanceCore.TelegramBot
                 var cmd = (message + " ").Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0].ToLower().Substring(1);
                 var args = message.Substring(cmd.Length + 1).Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                GotCommand?.Invoke(cmd, args, chatid);
+                GotCommand?.Invoke(this, cmd, args, chatid);
             }
             else
-                GotMessage?.Invoke(message, chatid);
+                GotMessage?.Invoke(this, message, chatid);
         }
 
-        async private void Bot_GotCommand(string cmd, string[] args, long chatid)
-        {
-            if (processor.CanProcess(cmd))
-                processor.ProcessCommand(cmd, args, chatid);
-            else
-                await TextMessage("Не удалось найти команду " + cmd, chatid);
-        }
-
-        private void Bot_GotMessage(string msg, long chatid)
-        {
-            _bot.SendTextMessageAsync(chatid, "Бот понимает только команды, начинающиеся с /");
-        }
 
         async private void Bot_Log(string msg)
         {

@@ -8,25 +8,17 @@ namespace BinanceCore.TelegramBot
 {
     public class CommandProcessor
     {
-        string[] _commands = {"buy", "sell", "graph", "bal", "base", "stop"};
+        string[] _commands = {"buy", "sell", "graph", "bal", "setbase", "stop","go","", "help"};
 
-        public delegate void BuyDgt(long chatid);
-        public event BuyDgt Buy;
-
-        public delegate void SellDgt(long chatid);
-        public event SellDgt Sell;
-
-        public delegate void GraphDgt(long chatid);
-        public event GraphDgt Graph;
-
-        public delegate void BalDgt(long chatid);
-        public event BalDgt Bal;
-
-        public delegate void BaseDgt(long chatid);
-        public event BaseDgt Base;
-
-        public delegate void StopDgt(long chatid);
-        public event StopDgt Stop;
+        public delegate void CmdDgt(long chatid);
+        public event CmdDgt Stop;
+        public event CmdDgt Buy;
+        public event CmdDgt Sell;
+        public event CmdDgt Graph;
+        public event CmdDgt Bal;
+        public event CmdDgt SetBase;
+        public event CmdDgt Go;
+        public event CmdDgt Help;
         public bool CanProcess(string commandname)
         {
             return _commands.Contains(commandname);
@@ -34,28 +26,36 @@ namespace BinanceCore.TelegramBot
 
         public void ProcessCommand(string commandname, string[] args, long chatid)
         {
-            if (!CanProcess(commandname)) throw new ArgumentException("Возникла ошибка с командой " + commandname);
-            switch (commandname)
-            {
-                case "buy":
-                    Buy(chatid);
-                    break;
-                case "sell":
-                    Sell(chatid);
-                    break;
-                case "graph":
-                    Graph(chatid);
-                    break;
-                case "bal":
-                    Bal(chatid);
-                    break;
-                case "base":
-                    Base(chatid);
-                    break; 
-                case "stop": 
-                    Stop(chatid); 
-                    break;
-            }
+                if (!CanProcess(commandname)) throw new ArgumentException("Возникла ошибка с командой " + commandname);
+
+                switch (commandname)
+                {
+                    case "buy":
+                        Buy?.Invoke(chatid);
+                        break;
+                    case "sell":
+                        Sell?.Invoke(chatid);
+                        break;
+                    case "graph":
+                        Graph?.Invoke(chatid);
+                        break;
+                    case "bal":
+                        Bal?.Invoke(chatid);
+                        break;
+                    case "setbase":
+                        SetBase?.Invoke(chatid);
+                        break;
+                    case "stop":
+                        Stop?.Invoke(chatid);
+                        break;
+                    case "go":
+                        Go?.Invoke(chatid);
+                        break;
+                    case "help":
+                    case "":
+                        Help?.Invoke(chatid);
+                        break;
+                }
         }
     }
 }

@@ -48,6 +48,22 @@ namespace BinanceCore.Controls
             }
         }
 
+        bool active = false;
+        /// <summary>
+        /// Величина ожидаемого роста 
+        /// </summary>
+        public bool Active
+        {
+            get => active;
+            set
+            {
+                if (active == value) return;
+                active = value;
+                Log($"FOLLOWER IS {(value?"ACTIVE":"PASSIVE")}");
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Active"));
+            }
+        }
+
         decimal rangeBuy = 0;
         /// <summary>
         /// Величина ожидаемого падения
