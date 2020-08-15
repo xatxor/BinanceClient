@@ -20,12 +20,12 @@
         </Grid.RowDefinitions>
         <Button x:Name="SaveButton" Click="SaveButton_OnClick" Content="Save" Grid.Row="4" HorizontalAlignment="Left" Width="116" Grid.Column="1" Margin="152,0,0,0"/>
         <TextBox x:Name="key" Text="" Grid.Row="0" Grid.Column="1" Margin="0,20,0,20"/>
-        <TextBox x:Name="dbpath" Text="" Grid.Row="1" Grid.Column="1" Margin="0,22,0,18"/>
-        <TextBox x:Name="token" Text="" Grid.Row="2" Grid.Column="1" Margin="0,22,0,18"/>
-        <TextBox x:Name="master" Text="" Grid.Row="3" Grid.Column="1" Margin="2,20,0,20"/>
-        <TextBlock Text="Ключ Binance" HorizontalAlignment="Left" VerticalAlignment="Center" Height="20" Width="114" Margin="10,0,0,0"/>
-        <TextBlock Text="Адрес базы данных" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" Height="20" Width="118" Margin="10,22,0,0"/>
-        <TextBlock Text="Токен бота Telegram" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Top" Height="20" Width="128" Margin="10,22,0,0" Grid.ColumnSpan="2"/>
-        <TextBlock Text="Id Telegram Канала&#10;для логов" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Top" Height="40" Width="118" Margin="8,20,0,0"/>
+        <TextBox x:Name="dbpath" Text="" Grid.Row="1" Grid.Column="1" Margin="0,20,0,20"/>
+        <TextBox x:Name="token" Text="" Grid.Row="2" Grid.Column="1" Margin="0,20,0,20"/>
+        <TextBox x:Name="master" Text="" Grid.Row="3" Grid.Column="1" Margin="0,20,0,20"/>
+        <TextBlock Text="Ключ Binance" HorizontalAlignment="Left" VerticalAlignment="Center" Height="20" Width="114" Margin="10,20,0,0"/>
+        <TextBlock Text="Адрес базы данных" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" Height="20" Width="118" Margin="10,20,0,0"/>
+        <TextBlock Text="Токен бота Telegram" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Top" Height="20" Width="128" Margin="10,20,0,0" Grid.ColumnSpan="2"/>
+        <TextBlock Text="Id Telegram Канала&#10;для логов" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Top" Height="40" Width="118" Margin="10,20,0,0"/>
     </Grid>
 </UserControl>
