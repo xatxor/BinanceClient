@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Linq;
 using System;
+using Binance.Net.Objects.Spot.SpotData;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Timers;
 
 namespace BinanceCore.Controls
 {
@@ -37,13 +41,16 @@ namespace BinanceCore.Controls
         public string Stable => stableTB.Text;
         public string Trade => tradeTB.Text;
         #endregion
+        private Timer fxTimer = new Timer(100);
+
+        public decimal LastPrice;
 
         IEnumerable<string> knownStables = new string[] { "USDT" };
 
         public PairSelector()
         {
             InitializeComponent();
-
+            balanceTB.PreviewMouseDown+= (s,e) => UpdateBalance();
             tradeTB.GotFocus += (s, e) => (tradeTB).Tag = tradeTB.Text;        //  Привяжем запоминание ранее представленного текста
             stableTB.GotFocus += (s, e) => (stableTB).Tag = stableTB.Text;      //  в тэге тексбокса если в текстбокс попал фокус, и начинается изменение данных
             tradeTB.LostFocus   +=  (s, e)  => MakeEvent(tradeTB, TradeSet);   //  привяжем генерацию событий с текстами из текстбоксов
@@ -62,8 +69,61 @@ namespace BinanceCore.Controls
                     }
                 SymbolSelected?.Invoke(selectedItem);
             };
+            fxTimer.Elapsed += FxTimer_Elapsed;
+            fxTimer.Start();
         }
-
+        /// <summary>
+        /// Пытается узнать баланс по токену через клиент бинанса.
+        /// Клиента надо задатьь заранее через свойство Client, иначе будет Exception
+        /// </summary>
+        /// <param name="token">Токен монеты, по которой нужно узнать баланс</param>
+        /// <returns></returns>
+        public decimal GetBalance(string token)
+        {
+            var info = client.GetAccountInfo();
+            var bal=info.Data.Balances.Where(b => b.Asset == token).Single().Free;
+            return bal;
+        }
+        private void Blink()
+        {
+            balanceTB.Opacity = 0;
+        }
+        private void FxTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            Application.Current?.Dispatcher.Invoke(new Action(() =>
+            {
+                if (balanceTB.IsVisible)
+                {
+                    if (balanceTB.Opacity <1) balanceTB.Opacity+=(1- balanceTB.Opacity)/2;
+                }
+            }));
+        }
+        public string UpdateBalance()
+        {
+            var stableAmount = GetBalance(Stable);
+            var tradeAmount = GetBalance(Trade);
+            var total = tradeAmount * LastPrice + stableAmount;
+            string bal =
+                $"{Stable.ToString().PadLeft(4)}: {stableAmount.ToString("0.#######").PadLeft(11).TrimEnd('0')}\n" +
+                $"{Trade.ToString().PadLeft(4)}: {tradeAmount.ToString("0.#######").PadLeft(11).TrimEnd('0')}\n" +
+                $" SUM: {total.ToString("0.#######").PadLeft(11).TrimEnd('0')}$";
+            balanceTB.Text = bal;
+            Blink();
+            return bal;
+        }
+        /// <summary>
+        /// Быстрая возможность получить текст баланса
+        /// </summary>
+        public string BalInfo
+        {
+            get
+            {
+                var bal = "";
+                Application.Current.Dispatcher.Invoke(() => bal = balanceTB.Text);
+                return bal;
+            }
+        }
+        public BinanceClient client;
         /// <summary>
         /// Позволяет установить пару и задать в ней торговый и стабильный токены
         /// </summary>
@@ -84,7 +144,7 @@ namespace BinanceCore.Controls
         /// </summary>
         /// <param name="client">Клиент к бинансу, через который можно обратиться на апи</param>
         /// <param name="KnownStables">Перечисление известных стейбл-коинов (выбиралка их запомнит на будущее чтобы при выборе символа определять, где в нём стейбл)</param>
-        public void LoadSymbols(BinanceClient client, IEnumerable<string> KnownStables=null)
+        public void LoadSymbols(IEnumerable<string> KnownStables=null)
         {
             if (KnownStables != null) knownStables = KnownStables;  //  Если в параметрах было передано перечисление стейблов, запомним его вместо старого
 

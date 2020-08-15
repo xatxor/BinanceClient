@@ -178,16 +178,12 @@ namespace BinanceCore.Controls
 
             if (basePrice != 0)
             {
-                if (dPrice > 0)
-                {
+                if (dPrice > 0.1M)
                     winNowL.Foreground = Brushes.Green;
-                    wouldWin = (dPrice / BasePrice).ToString("0.###%");
-                }
-                if (dPrice < 0)
-                {
+                else
                     winNowL.Foreground = Brushes.Red;
-                    wouldWin = (dPrice / BasePrice).ToString("0.###%");
-                }
+
+                wouldWin = (dPrice / BasePrice - 0.001M).ToString("0.###%");
             }
             winNowL.Content = wouldWin;
 

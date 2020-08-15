@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BinanceCore.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="60" d:DesignWidth="100">
+             d:DesignHeight="105" d:DesignWidth="100">
     <Control.Resources>
         <Style TargetType="Label">
             <Setter Property="FontSize" Value="10"/>
@@ -34,6 +34,7 @@
             <RowDefinition Height="25*"/>
             <RowDefinition Height="14*"/>
             <RowDefinition Height="21*"/>
+            <RowDefinition Height="55*"/>
         </Grid.RowDefinitions>
         <ComboBox x:Name="SymbolsCB" Grid.ColumnSpan="2" Text="LTCUSDT" >
             <TextBlock>LTCUSDT</TextBlock>
@@ -44,5 +45,6 @@
         <Label Grid.Row="1" Grid.Column="1" Content="Stable" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom" Foreground="LightGray"/>
         <TextBox x:Name="tradeTB" Grid.Row="2" Grid.Column="0" Text="LTC" />
         <TextBox x:Name="stableTB" Grid.Row="2" Grid.Column="1" Text="USDT" />
+        <TextBlock  x:Name ="balanceTB" Grid.Row="3" Grid.ColumnSpan="2" FontFamily="Courier New" FontWeight="Bold"/>
     </Grid>
 </UserControl>

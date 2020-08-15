@@ -133,7 +133,7 @@ namespace BinanceCore.TelegramBot
             Telegram.Bot.Types.Enums.ParseMode.Html, true, false, 0, kb2);
         }
 
-        internal async Task Menu(string[][] mainMenu, string v, int from)
+        internal async Task Menu(string[][] mainMenu, string v, long chatID)
         {
             var allbuttons = new List<List<Telegram.Bot.Types.ReplyMarkups.KeyboardButton>>();
             Telegram.Bot.Types.ReplyMarkups.ReplyKeyboardMarkup kb = null;
@@ -145,7 +145,7 @@ namespace BinanceCore.TelegramBot
                 allbuttons.Add(buttons);
                 kb = new Telegram.Bot.Types.ReplyMarkups.ReplyKeyboardMarkup(allbuttons, true);
             }
-            await _bot.SendTextMessageAsync(new Telegram.Bot.Types.ChatId(from), v,
+            await _bot.SendTextMessageAsync(new Telegram.Bot.Types.ChatId(chatID), v,
             Telegram.Bot.Types.Enums.ParseMode.Html, true, false, 0, kb);
         }
     }
