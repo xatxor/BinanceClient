@@ -5,11 +5,21 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BinanceCore.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="639.916">
+    <Control.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="0 18"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+    </Control.Resources>
     <Grid x:Name="TopLevelController">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="241*"/>
-            <ColumnDefinition Width="559*"/>
+            <ColumnDefinition Width="160"/>
+            <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
@@ -18,14 +28,14 @@
             <RowDefinition Height="1*"/>
             <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
-        <Button x:Name="Save" Content="Save" Grid.Row="4" HorizontalAlignment="Left" Width="274" Grid.Column="1" Margin="297,0,0,0"/>
-        <TextBox x:Name="key" Text="" Grid.Row="0" Grid.Column="1" Margin="0,18,0,18"/>
-        <TextBox x:Name="dbpath" Text="" Grid.Row="1" Grid.Column="1" Margin="0,18,0,18"/>
-        <TextBox x:Name="token" Text="" Grid.Row="2" Grid.Column="1" Margin="0,18,0,18"/>
-        <TextBox x:Name="master" Text="" Grid.Row="3" Grid.Column="1" Margin="0,18,0,18"/>
-        <Label Content="Ключ Binance" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Height="26" Width="220"/>
-        <Label Content="Адрес базы данных" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="26" Width="220"/>
-        <Label Content="Токен бота Telegram" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Height="26" Width="220"/>
-        <Label Content="Id Telegram Канала логов бота" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Height="26" Width="220"/>
+        <Button x:Name="Save" Content="Save" Grid.Row="4" HorizontalAlignment="Right" Padding="30 0" FontSize="16" Grid.Column="1" />
+        <TextBox x:Name="binkey" Text="" Grid.Row="0" Grid.Column="1" />
+        <TextBox x:Name="binsecret" Text="" Grid.Row="1" Grid.Column="1" />
+        <TextBox x:Name="tgmtoken" Text="" Grid.Row="2" Grid.Column="1" />
+        <TextBox x:Name="tgmmaster" Text="{Binding Path=Master, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="3" Grid.Column="1" />
+        <Label Content="Binance Key" Grid.Row="0" />
+        <Label Content="Binance Secret" Grid.Row="1" />
+        <Label Content="Telegram Bot Token" Grid.Row="2" />
+        <Label Content="Telegram Channel ID" Grid.Row="3"/>
     </Grid>
 </UserControl>

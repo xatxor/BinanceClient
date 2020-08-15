@@ -14,9 +14,21 @@ namespace BinanceCore.Entities
         public decimal WinFall;
         public decimal BasePrice;
         public Mode LastMode;
+        /// <summary>
+        /// Binance key
+        /// </summary>
         public string Key;
-        public string Dbpath;
+        /// <summary>
+        /// Binance secret
+        /// </summary>
+        public string Secret;
+        /// <summary>
+        /// Telegtram bot token
+        /// </summary>
         public string Token;
+        /// <summary>
+        /// Telegram master id
+        /// </summary>
         public long Master;
     }
 }

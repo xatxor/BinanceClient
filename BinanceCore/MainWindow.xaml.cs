@@ -38,7 +38,7 @@ namespace BinanceCore
         /// <summary>
         /// Клиент для работы с бинансом
         /// </summary>
-        BinanceClient client = new BinanceClient();               //  создание глобального клиента для связи с бинансом
+        BinanceClient client;              
 
         /// <summary>
         /// Для поддержки наблюдаемых свойств в классе - это позволяет их привязать к полям через биндинг
@@ -65,17 +65,31 @@ namespace BinanceCore
         int timePassed = 0;
         Timer timer = new Timer(1000);
 
-        Telega telega;
+        Telega _telega;
+        Telega telega
+        {
+            get
+            {
+                if (_telega == null)
+                {
+                    _telega = new Telega(settings.Token, settings.Master);
+                    telega.GotMessage += Bot_GotMessage;
+                    telega.GotCommand += Bot_GotCommand;
+                }
+                return _telega;
+            }
+        }
 
         public MainWindow()
         {
             InitializeComponent();
+            LoadDefaultProject();                               //  Загрузка настроек проекта
+            client = new BinanceClient();
             symbolSelector.client = client;                    //  выдача показывалке балансов клиента для связи с бинансом
 
             timer.Elapsed += Timer_Elapsed;             //  привязка ежесекундного таймера
             symbolSelector.LoadSymbols(new string[] { "USDT" });
-            symbolSelector.SetPair("LTCUSDT");                  //  установим торговую пару по умолчанию
-            LoadDefaultProject();
+ //           symbolSelector.SetPair("LTCUSDT");                  //  установим торговую пару по умолчанию
             symbolSelector.SymbolSelected += symbolChanged;     //  При изменении выбора торговой пары
 
             followA.GotFall += FollowA_GotFall;
@@ -97,12 +111,10 @@ namespace BinanceCore
             processor.Go += StartCommand;
             processor.Stop += StopCommand;
             processor.Help += HelpCommand;
-            telega = new Telega("1294746661:AAGeFjeIBPTvG2pUhcdflPD4Nc_pj8ExdXI", 109159596);
-            telega.GotMessage += Bot_GotMessage;
-            telega.GotCommand += Bot_GotCommand;
+
 
             var nowBalance = symbolSelector.UpdateBalance();
-            Task.Run(async () => await telega.TextMessageMaster("BinanceCore v.0.6 started.\n"+nowBalance));
+            telega.TextMessageMaster("BinanceCore v.0.6 started.\n"+nowBalance);
         }
 
         private async void HelpCommand(long chatid)
@@ -538,8 +550,12 @@ namespace BinanceCore
                 WinFall=followA.RangeBuy,
                 WinRise=followA.Range,
                 LastMode=followA.Mode,
-                BasePrice=followA.BasePrice
-            };
+                BasePrice=followA.BasePrice,
+                Secret=settings.Secret,
+                Token=settings.Token,
+                Master=settings.Master,
+                Key=settings.Key
+        };
             proj.Save();
         }
 
@@ -560,6 +576,32 @@ namespace BinanceCore
                 followA.Range = proj.WinRise;
                 followA.Mode = proj.LastMode;
                 followA.BasePrice=proj.BasePrice;
+
+                settings.Secret = proj.Secret;
+                settings.Key = proj.Key;
+                settings.Token = proj.Token;
+                settings.Master = proj.Master;
+
+                _telega = null;
+
+
+                var binanceClientID = settings.Key;
+                var binanceSecret = settings.Secret;
+
+                BinanceClient.SetDefaultOptions(new BinanceClientOptions()
+                {
+                    ApiCredentials = new ApiCredentials(binanceClientID, binanceSecret),
+                    LogVerbosity = LogVerbosity.Debug,
+                    LogWriters = new List<TextWriter> { Console.Out }
+                });
+                BinanceSocketClient.SetDefaultOptions(new BinanceSocketClientOptions()
+                {
+                    ApiCredentials = new ApiCredentials(binanceClientID, binanceSecret),
+                    LogVerbosity = LogVerbosity.Debug,
+                    LogWriters = new List<TextWriter> { Console.Out }
+                });
+
+                client = new BinanceClient();
             }
             catch (Exception ex)
             {
