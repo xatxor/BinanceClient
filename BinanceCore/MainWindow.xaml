@@ -44,6 +44,13 @@
                         </ScrollViewer>
                     </StackPanel>
                 </TabItem>
+                <TabItem Header="Settings">
+                    <ScrollViewer HorizontalAlignment="Stretch">
+                        <StackPanel x:Name="setts" >
+                            <Controls:Settings x:Name="settings"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
             </TabControl>
         </Grid>
         <Button Click="Graph_Clicked" Opacity="0.01"/>
