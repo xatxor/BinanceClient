@@ -99,7 +99,7 @@ namespace BinanceCore.Controls
         /// </summary>
         /// <param name="token">Токен монеты, по которой нужно узнать баланс</param>
         /// <returns></returns>
-        private decimal GetBalance(string token)
+        public decimal GetBalance(string token)
         {
             if (Client == null) throw new Exception("Необходимо установить значение Balance.Client прежде чем запрашивать баланс!");
             var info = Client.GetAccountInfo();

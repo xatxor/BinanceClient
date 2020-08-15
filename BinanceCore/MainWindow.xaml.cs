@@ -198,7 +198,19 @@ namespace BinanceCore
             SellBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.TextMessageMaster("<code>Balance " + balance.BalInfo.Replace("\n", "\n        ") + "</code>");
+            await ReportBalance();
+        }
+
+        private async Task ReportBalance()
+        {
+            var stableAmount = GetBalance(StableToken);
+            var tradeAmount = GetBalance(TradingToken);
+            var total = tradeAmount * LastPrice+stableAmount;
+            await telega.TextMessageMaster("<code>"+
+                $"{StableToken.ToString().PadLeft(5)}: {stableAmount.ToString("0.#######").PadLeft(14).TrimEnd('0')}\n" +
+                $"{TradingToken.ToString().PadLeft(5)}: {tradeAmount.ToString("0.#######").PadLeft(14).TrimEnd('0')}\n" +
+                $"TOTAL: {total.ToString("0.#######").PadLeft(14).TrimEnd('0')}$\n" +
+                "</code>");
         }
 
         private async void FollowA_GotFall(Controls.FollowerAnalyzer sender)
@@ -208,7 +220,7 @@ namespace BinanceCore
             BuyBTCClicked(null, null);
             System.Threading.Thread.Sleep(1000);
             balance.UpdateBalance();
-            await telega.TextMessageMaster("<code>Balance " + balance.BalInfo.Replace("\n", "\n        ") + "</code>");
+            await ReportBalance();
         }
         #endregion
 
@@ -239,11 +251,17 @@ namespace BinanceCore
         /// </summary>
         private void AutoUpdate()
         {
-            autoCB.Content = "⏳";
-            Graph_Clicked(null, null);
-            this.DoEvents();
-            autoCB.Content = "✓";
-            balance.UpdateBalance();
+            try
+            {
+                autoCB.Content = "⏳";
+                Graph_Clicked(null, null);
+                this.DoEvents();
+                autoCB.Content = "✓";
+                balance.UpdateBalance();
+            }catch(Exception ex)
+            {
+                Log(ex.Message);
+            }
         }
 
         private void Log(string v)
@@ -362,8 +380,7 @@ namespace BinanceCore
         }
         private async void BalCommand(long chatid)
         {
-            var bal = balance.BalInfo;
-            await telega.TextMessage(bal, chatid);
+            await ReportBalance();
         }
         private async void StartCommand(long chatid)
         {
