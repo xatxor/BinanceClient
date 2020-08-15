@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace BinanceCore.Controls
 {
@@ -10,6 +11,10 @@ namespace BinanceCore.Controls
         public Settings()
         {
             InitializeComponent();
+        }
+
+        private void SaveButton_OnClick(object sender, RoutedEventArgs e)
+        {
             
         }
     }
