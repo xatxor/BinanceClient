@@ -44,6 +44,13 @@
                         </ScrollViewer>
                     </StackPanel>
                 </TabItem>
+                <TabItem Header="Settings">
+                    <ScrollViewer HorizontalAlignment="Stretch">
+                        <StackPanel x:Name="setts" >
+                            <Controls:Settings x:Name="settings"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
             </TabControl>
         </Grid>
         <Button Click="Graph_Clicked" Opacity="0.01"/>
@@ -62,8 +69,7 @@
             </CheckBox>
         </StackPanel>
         <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Background="#50ffffff" Width="100" Opacity=".75">
-            <Controls:PairSelector Height="60" x:Name="symbolSelector" Foreground="White"/>
-            <Controls:Balance x:Name="balance"  Height="38"  Foreground="White"/>
+            <Controls:PairSelector Height="110" x:Name="symbolSelector" Foreground="White"/>
             <Grid Height="30">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
