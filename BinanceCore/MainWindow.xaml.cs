@@ -111,28 +111,31 @@ namespace BinanceCore
             processor.Go += StartCommand;
             processor.Stop += StopCommand;
             processor.Help += HelpCommand;
+            processor.Limit += LimitCommand;
 
 
             var nowBalance = symbolSelector.UpdateBalance();
-            telega.TextMessageMaster("BinanceCore v.0.6 started.\n"+nowBalance);
+            telega.TextMessageMaster("BinanceCore v.0.7 started.\n"+nowBalance);
+        }
+
+        private void LimitCommand(decimal winRise, decimal lostRise, decimal winFall, decimal lostFall)
+        {
+            followA.Range = winRise;
+            followA.RangeBuy = winFall;
+            followA.FailRaiseLevel = lostRise;
+            followA.FailFallLevel = lostFall;
         }
 
         private async void HelpCommand(long chatid)
         {
             await telega.Menu(
                 new string[][] { new string[] { "/sell", "/buy","/setbase" }, new string[]{"/go","/stop","/help"}, new string[] { "/graph","/bal"} },
-                $"Commands:\n" +
-                "/buy     /sell    trading coins\n" +
-                "/graph - show graph\n" +
-                "/bal - show balance\n" +
-                "/setbase - set base value\n" +
-                "/go     /stop     trading\n" +
-                "/help - show help\n" +
                 "STATUS:\n" +
-                $"Timer: {(timer.Enabled?"ON":"OFF")}   " +
+                $"Timer: {(autoCB.IsChecked==true?"ON":"OFF")}   " +
                 $"Follower: {(followA.Active ? "ON" : "OFF")}\n" +
                 $"Price base/last: {followA.BasePrice.ToString().TrimEnd('0')} / {LastPrice.ToString().TrimEnd('0')}\n" +
                 $"Mode: {followA.mode}\n"+
+                $"Win if trade now: {followA.WouldWin}\n" +
                 $"Rise 🌟:{followA.Range} 🔴:{ followA.FailRaiseLevel}\n" +
                 $"Fall 🌟: {followA.RangeBuy} 🔴: {followA.FailFallLevel}\n"
                 ,chatid);
