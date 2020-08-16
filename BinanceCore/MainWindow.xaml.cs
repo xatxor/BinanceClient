@@ -110,13 +110,15 @@ namespace BinanceCore
             processor.Graph += GraphCommand;
             processor.Go += StartCommand;
             processor.Stop += StopCommand;
-            processor.Help += HelpCommand;
+            processor.Status += StatusCommand;
             processor.Limit += LimitCommand;
+            processor.Save += (id) => saveB_Click(null, null);
 
 
             var nowBalance = symbolSelector.UpdateBalance();
             telega.TextMessageMaster("BinanceCore v.0.7 started.\n"+nowBalance);
         }
+
 
         private void LimitCommand(decimal winRise, decimal lostRise, decimal winFall, decimal lostFall)
         {
@@ -126,10 +128,10 @@ namespace BinanceCore
             followA.FailFallLevel = lostFall;
         }
 
-        private async void HelpCommand(long chatid)
+        private async void StatusCommand(long chatid)
         {
             await telega.Menu(
-                new string[][] { new string[] { "/sell", "/buy","/setbase" }, new string[]{"/go","/stop","/help"}, new string[] { "/graph","/bal"} },
+                new string[][] { new string[] { "/sell", "/buy","/setbase" }, new string[]{"/go","/stop","/status"}, new string[] { "/save","/graph","/bal"} },
                 "STATUS:\n" +
                 $"Timer: {(autoCB.IsChecked==true?"ON":"OFF")}   " +
                 $"Follower: {(followA.Active ? "ON" : "OFF")}\n" +
@@ -338,10 +340,11 @@ namespace BinanceCore
             await telega.TextMessageMaster($"AUTO: {(autoCB.IsChecked == true ? "ON" : "OFF")}");
         }
 
-        private void saveB_Click(object sender, RoutedEventArgs e)
+        private async void saveB_Click(object sender, RoutedEventArgs e)
         {
             SaveProjectToDefault();
             Log($"Project Saved! ({DateTime.Now.ToString("HH:mm:ss")})");
+            await telega.TextMessageMaster("Project saved");
         }
 
         private void loadB_Click(object sender, RoutedEventArgs e)

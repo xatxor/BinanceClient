@@ -210,7 +210,7 @@ namespace BinanceCore.Controls
 
             if (Mode == Mode.WAIT_FALL)
             {
-                if (dp > range && dp>0)
+                if (dp > rangeBuy && dp>0)
                 {
                     GotFall(this);
                     Mode = Mode.WAIT_RISE;
@@ -224,7 +224,7 @@ namespace BinanceCore.Controls
             }
             else
             {
-                if (-dp> rangeBuy && dp<0)
+                if (-dp> range && dp<0)
                 {
                     GotRise(this);
                     Mode = Mode.WAIT_FALL;

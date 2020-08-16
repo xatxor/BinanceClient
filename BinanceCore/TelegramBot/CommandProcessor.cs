@@ -8,7 +8,7 @@ namespace BinanceCore.TelegramBot
 {
     public class CommandProcessor
     {
-        string[] _commands = {"buy", "sell", "graph", "bal", "setbase", "stop","go","", "help","limit"};
+        string[] _commands = {"buy", "sell", "graph", "bal", "setbase", "stop","go","", "help","limit","save","status"};
 
         public delegate void CmdDgt(long chatid);
         public delegate void LimitDgt(decimal winRise, decimal lostRise, decimal winFall, decimal lostFall);
@@ -19,7 +19,8 @@ namespace BinanceCore.TelegramBot
         public event CmdDgt Bal;
         public event CmdDgt SetBase;
         public event CmdDgt Go;
-        public event CmdDgt Help;
+        public event CmdDgt Status;
+        public event CmdDgt Save;
         public event LimitDgt Limit;
         public bool CanProcess(string commandname)
         {
@@ -50,12 +51,16 @@ namespace BinanceCore.TelegramBot
                 case "stop":
                     Stop?.Invoke(chatid);
                     break;
+                case "save":
+                    Save?.Invoke(chatid);
+                    break;
                 case "go":
                     Go?.Invoke(chatid);
                     break;
                 case "help":
+                case "status":
                 case "":
-                    Help?.Invoke(chatid);
+                    Status?.Invoke(chatid);
                     break;
                 case "limit":
                     Limit?.Invoke(AnyPointDecimal(args[0]), AnyPointDecimal(args[1]), AnyPointDecimal(args[2]), AnyPointDecimal(args[3]));
