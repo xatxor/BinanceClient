@@ -30,5 +30,7 @@ namespace BinanceCore.Entities
         /// Telegram master id
         /// </summary>
         public long Master;
+
+        public decimal StopBalance;
     }
 }
