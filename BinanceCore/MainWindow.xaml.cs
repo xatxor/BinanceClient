@@ -256,15 +256,14 @@ namespace BinanceCore
                     timePassed = 0;                                 //      сбрасывается счётчик секунд
                     timer.Stop();                                   //      таймер останавливается на время обновления
                     AutoUpdate();                                   //      выполняется обновлене
-                    if(symbolSelector.Total>StopBalance)            //      если баланс не достиг дна
-                        timer.Start();                              //      таймер запускается снова
-                    else
+                    if(followA.Active && symbolSelector.Total<StopBalance)            //      если баланс не достиг дна
                     {
-                        autoCB.IsChecked = false;
+                        followA.Active = false;
                         Sell();
                         Telega.TextMessageMaster("🔴🔴🔴 WARNING 🔴🔴🔴\nStop Balance!\nTrading terminated.\nRun to stable.");
                         ReportBalance();
                     }
+                    timer.Start();                              //      таймер запускается снова
                 }
                 else                                                //  если же времени прошло недостаточно
                     autoCB.Content = $"{(Timeout - timePassed)}";   //      то просто обновим индикатор отсчёта
