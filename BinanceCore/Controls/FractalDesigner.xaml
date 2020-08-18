@@ -12,13 +12,13 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <StackPanel x:Name="stack" Height="98" VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
-            <local:Segment x:Name="segment1" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54"/>
-            <local:Segment x:Name="segment2" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54"/>
-            <local:Segment x:Name="segment3" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54"/>
-            <local:Segment x:Name="segment4" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54"/>
-            <local:Segment x:Name="segment5" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54"/>
-            <local:Segment x:Name="segment6" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54"/>
-            <local:Segment x:Name="segment7" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54"/>
+            <local:Segment x:Name="segment1" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54" Title="S1"/>
+            <local:Segment x:Name="segment2" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54" Title="S2"/>
+            <local:Segment x:Name="segment3" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54" Title="S3"/>
+            <local:Segment x:Name="segment4" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54" Title="S4"/>
+            <local:Segment x:Name="segment5" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54" Title="S5"/>
+            <local:Segment x:Name="segment6" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54" Title="S6"/>
+            <local:Segment x:Name="segment7" HorizontalAlignment="Left" Height="98" VerticalAlignment="Top" Width="54" Title="S7"/>
         </StackPanel>
 
         <!-- управление количеством шагов фрактала -->

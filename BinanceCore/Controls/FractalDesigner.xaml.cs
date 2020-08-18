@@ -55,13 +55,13 @@ namespace BinanceCore
                 segment1, segment2, segment3, segment4, segment5, segment6, segment7
             };
 
-            foreach(var s in segments)          //  в каждом сегменте
-                s.Changed += SegmentChanged;    //  к событию изменения данных привяжем местную функцию обновления всех сегментов
+     /*       foreach(var s in segments)          //  в каждом сегменте
+                s.Changed += SegmentChanged;    //  к событию изменения данных привяжем местную функцию обновления всех сегментов*/
 
             MoreStepsB.Click += (b, a) => ++StepCount;
-            LessStepsB.Click += (b, a) => ++StepCount;
-
-            SegmentChanged();                   //  имитируем необходимость обновить все сегменты
+            LessStepsB.Click += (b, a) => --StepCount;
+            segments[0].InMin = segments[0].InMax = 0.5;
+//            SegmentChanged();                   //  имитируем необходимость обновить все сегменты
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace BinanceCore
         protected override void OnVisualParentChanged(DependencyObject oldParent)
         {
             base.OnVisualParentChanged(oldParent);
-            SegmentChanged();
+           // SegmentChanged();
         }
         /// <summary>
         /// Флаг первой отрисовки ради чита рендеринга
@@ -83,12 +83,12 @@ namespace BinanceCore
         /// </summary>
         /// <param name="drawingContext"></param>
         protected override void OnRender(DrawingContext drawingContext)
-        {
+        {/*
             if (firstPaint)
             {
                 firstPaint = false;
                 SegmentChanged();
-            }
+            }*/
             base.OnRender(drawingContext);
         }
         /// <summary>
