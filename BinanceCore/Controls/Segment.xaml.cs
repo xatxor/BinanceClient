@@ -59,10 +59,8 @@ namespace BinanceCore
                 mode = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Mode"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ModeSign"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMin"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMax"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMinP"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMaxP"));
+                NotifyOutMax();
+                NotifyOutMin();
                 UpdateNext();
             }
         }
@@ -108,14 +106,12 @@ namespace BinanceCore
         {
             get { return maxD; }
             set {
-                    if (maxD == value || h == 0) return;
-                    maxD = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("MaxD"));
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMin"));
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMax"));
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMinP"));
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMaxP"));
-                    UpdateNext();
+                if (maxD == value || h == 0) return;
+                maxD = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("MaxD"));
+                NotifyOutMax();
+                NotifyOutMin();
+                UpdateNext();
             }
         }
 
@@ -130,10 +126,8 @@ namespace BinanceCore
                 if (minD == value || h == 0) return;
                 minD = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("MinD"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMin"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMax"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMinP"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMaxP"));
+                NotifyOutMax();
+                NotifyOutMin();
                 UpdateNext();
             }
         }
@@ -151,10 +145,27 @@ namespace BinanceCore
                 inMin = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("InMin"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("InMinP"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMin"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMinP"));
+                NotifyOutMin();
                 UpdateNext();
             }
+        }
+
+        /// <summary>
+        /// Используется в сеттерах для извещения о том, что изменились выходные значения максимума
+        /// </summary>
+        private void NotifyOutMin()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMin"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMinP"));
+        }
+
+        /// <summary>
+        /// Используется в сеттерах для извещения о том, что изменились выходные значения минимума
+        /// </summary>
+        private void NotifyOutMax()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMax"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMaxP"));
         }
 
         double inMax = double.NaN;
@@ -170,8 +181,7 @@ namespace BinanceCore
                 inMax = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("InMax"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("InMaxP"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMax"));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMaxP"));
+                NotifyOutMax();
                 UpdateNext();
             }
         }
