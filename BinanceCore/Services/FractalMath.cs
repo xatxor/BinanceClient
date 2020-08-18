@@ -17,14 +17,14 @@ namespace BinanceCore.Services
                 bool fits = true;
                 for (int p = 0; p < fractalParts.Length && fits; p++)
                 {
-                    var must = fractalParts[p].Trim();
+                    var must = fractalParts[p].Trim().GoodPoint();
                     var mustParts = must.Split(new char[] { '-' });
-                    int mustMin = int.Parse(mustParts[1]);
-                    int mustMax = int.Parse(mustParts[2]);
+                    double mustMin = double.Parse(mustParts[1]);
+                    double mustMax = double.Parse(mustParts[2]);
                     var have = graphParts[i + p].Trim();
                     var mustMode = mustParts[0];
                     var haveMode = have.Substring(0, 1);
-                    var haveD = int.Parse(have.Substring(1));
+                    var haveD = double.Parse(have.Substring(1))/100.0;
                     switch (mustMode)
                     {
                         case "U":

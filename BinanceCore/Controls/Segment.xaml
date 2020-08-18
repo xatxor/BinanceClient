@@ -7,19 +7,19 @@
              mc:Ignorable="d" 
              d:DesignHeight="98" d:DesignWidth="54">
     <Grid x:Name="TopLevelController">
-        <TextBox x:Name="maxDTB" HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MaxD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" FontSize="16" FontFamily="Arial" />
+        <TextBox ToolTip="Изменение относительно прошлой свечи в процентах" HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MaxD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" FontSize="16" FontFamily="Arial" />
         <Canvas Margin="0 22" ClipToBounds="True">
             <Path Fill="Red" Stroke="Black">
                 <Path.Data>
                     <PathGeometry>
                         <PathGeometry.Figures>
                             <PathFigureCollection>
-                                <PathFigure x:Name="pathStart" IsClosed="True" StartPoint="0,10">
+                                <PathFigure IsClosed="True" StartPoint="{Binding Path=InMinP, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}">
                                     <PathFigure.Segments>
                                         <PathSegmentCollection>
-                                            <LineSegment x:Name="pathP2" Point="54,40"/>
-                                            <LineSegment x:Name="pathP3" Point="54,50"/>
-                                            <LineSegment x:Name="pathP4" Point="0,40"/>
+                                            <LineSegment Point="{Binding Path=OutMinP, UpdateSourceTrigger=PropertyChanged,Mode=OneWay}"/>
+                                            <LineSegment Point="{Binding Path=OutMaxP, UpdateSourceTrigger=PropertyChanged,Mode=OneWay}"/>
+                                            <LineSegment Point="{Binding Path=InMaxP, UpdateSourceTrigger=PropertyChanged,Mode=OneWay}"/>
                                         </PathSegmentCollection>
                                     </PathFigure.Segments>
                                 </PathFigure>
@@ -29,8 +29,9 @@
                 </Path.Data>
             </Path>
         </Canvas>
-        <Button Margin="0 22" x:Name="graphB" Content="▬" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="20" Opacity="0.4" />
-        <TextBox x:Name="minDTB" HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MinD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="16" />
+        <Label Margin="-2 16" Content="{Binding Path=Title, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Left" FontSize="12" Opacity="1" />
+        <Button Margin="0 22" x:Name="graphB" Content="{Binding Path=ModeSign, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="20" Opacity="0.4" />
+        <TextBox ToolTip="Изменение относительно прошлой свечи в процентах" HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MinD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="16" />
 
     </Grid>
 </UserControl>

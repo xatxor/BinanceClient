@@ -98,13 +98,22 @@ namespace BinanceCore.Controls
                 }
             }));
         }
+
+        decimal stableAmount;
+        public decimal StableAmount => stableAmount;
+        decimal tradeAmount;
+        public decimal TradeAmount => tradeAmount;
+        decimal total;
+        public decimal Total => total;
+
+
         public string UpdateBalance()
         {
             try
             {
-                var stableAmount = GetBalance(Stable);
-                var tradeAmount = GetBalance(Trade);
-                var total = tradeAmount * LastPrice + stableAmount;
+                stableAmount = GetBalance(Stable);
+                tradeAmount = GetBalance(Trade);
+                total = tradeAmount * LastPrice + stableAmount;
                 string bal =
                     $"{Stable.ToString().PadLeft(4)}: {stableAmount.ToString("0.#######").PadLeft(11).TrimEnd('0')}\n" +
                     $"{Trade.ToString().PadLeft(4)}: {tradeAmount.ToString("0.#######").PadLeft(11).TrimEnd('0')}\n" +

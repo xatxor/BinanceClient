@@ -142,6 +142,7 @@ namespace BinanceCore.Controls
             {
                 if (failFallLevel == value) return;
                 failFallLevel = value;
+                Log($"Fail Fall (will stop wait fall and will buy on reach) set to {value}%");
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("FailFallLevel"));
             }
         }
@@ -158,6 +159,7 @@ namespace BinanceCore.Controls
             {
                 if (failRaiseLevel == value) return;
                 failRaiseLevel = value;
+                Log($"Fail Raise (will stop wait raise and will sell on reach) set to {value}%");
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("FailRaiseLevel"));
             }
         }
@@ -190,7 +192,7 @@ namespace BinanceCore.Controls
             if (activeCB.IsChecked==true)
                 CourseChangeReaction(newPrice);
         }
-
+        public string WouldWin => winNowL.Content.ToString();
         /// <summary>
         /// Реакции на обновление курса.
         /// В качестве реакций могут быть эвенты о том, что достигнут нужный рост
@@ -208,7 +210,7 @@ namespace BinanceCore.Controls
 
             if (Mode == Mode.WAIT_FALL)
             {
-                if (dp > range && dp>0)
+                if (dp > rangeBuy && dp>0)
                 {
                     GotFall(this);
                     Mode = Mode.WAIT_RISE;
@@ -222,7 +224,7 @@ namespace BinanceCore.Controls
             }
             else
             {
-                if (-dp> rangeBuy && dp<0)
+                if (-dp> range && dp<0)
                 {
                     GotRise(this);
                     Mode = Mode.WAIT_FALL;

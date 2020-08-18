@@ -25,6 +25,10 @@
 
                 <Button x:Name="saveB" Content="Save Configuration" Click="saveB_Click"/>
                 <Button x:Name="loadB" Content="Load Configuration" Click="loadB_Click"/>
+
+                <Label Content="Stop-Balance" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Path=StopBalance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="50" />
+                <Label Content="{Binding Path=StableToken, Mode=OneWay}"/>
             </StackPanel>
             <TabControl Grid.Row="1">
                 <TabItem Header="Follow" Height="20" VerticalAlignment="Bottom">
@@ -36,7 +40,7 @@
                 </TabItem>
                 <TabItem Header="Fractals">
                     <StackPanel>
-                        <Button x:Name="addFractalB" Content="Add Fractal" Click="addFractalB_Click"/>
+                        <Button x:Name="addFractalB" Content="Add Fractal" />
                         <ScrollViewer HorizontalAlignment="Stretch">
                             <StackPanel x:Name="fractalsSP" >
                                 <local:FractalConfiguration x:Name="fractalConfiga" />

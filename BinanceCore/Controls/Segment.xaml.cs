@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Linq;
 
 namespace BinanceCore
 {
@@ -12,15 +13,18 @@ namespace BinanceCore
     public partial class Segment : UserControl, INotifyPropertyChanged
     {
         /// <summary>
+        /// Размер графика сегмента по умолчанию (длина и ширина)
+        /// Используется когда график ещё не на экране, и узнать его размер нельзя,
+        /// но прикинуть данные уже нужно.
+        /// </summary>
+        const int DEFAULT_GRAPH_SIZE = 54;
+        /// <summary>
         /// Делитель процентов в настройках, то есть если в настройках рост на 100, а делитель 1000, значит настроен рост на 0.1
         /// </summary>
-        public float Divisor = 1000F;
-
-        public delegate void ChangedDgt();
+        public float Divisor = 100F;
         /// <summary>
-        /// Событие возникает если изменились параметры работы сегмента (минимум, максимум изменения или режим)
+        /// Событие, при помощи которого обслуживаются наблюдения за свойствами класса
         /// </summary>
-        public event ChangedDgt Changed;
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
@@ -32,7 +36,13 @@ namespace BinanceCore
         /// Символики режимов, которые используются на экране
         /// </summary>
         string[] SIGNS = new string[] { "▬", "▲", "▼" };
-
+        /// <summary>
+        /// Символ режима сегмента
+        /// </summary>
+        public string ModeSign
+        {
+            get => SIGNS[(int)Mode];
+        }
 
         #region Входные параметры графика
 
@@ -43,51 +53,86 @@ namespace BinanceCore
         public SegmentMode Mode
         {
             get { return mode; }
-            set { 
+            set
+            {
+                if (mode == value) return;
                 mode = value;
-                UpdateOuts();
-                DrawGraph();
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Mode"));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ModeSign"));
+                NotifyOutMax();
+                NotifyOutMin();
+                UpdateNext();
+            }
+        }
+        /// <summary>
+        /// Автоматическое обновление следующих по очереди сегментов
+        /// если этот сегмент расположен на панели с другими сегментами
+        /// </summary>
+        private void UpdateNext()
+        {
+            try // Подразумевается, что сегмент должен быть на панели среди других сегментов, и ничего другого на панели быть не должно, но что-то может быть не так
+            {
+                var parentControls = (Parent as Panel).Children;
+                var thisIndex = parentControls.IndexOf(this);
+                if (thisIndex < parentControls.Count - 1)
+                {
+                    (parentControls[thisIndex + 1] as Segment).InMin = this.OutMin;
+                    (parentControls[thisIndex + 1] as Segment).InMax = this.OutMax;
+                }
+            }
+            finally { }
+        }
+
+        string title;
+        /// <summary>
+        /// Подпись слева сверху - имя сегмента
+        /// </summary>
+        public string Title
+        {
+            get => title;
+            set
+            {
+                if (title == value) return;
+                title = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Title"));
             }
         }
 
-        int maxD = 10;
+        double maxD = double.NaN;
         /// <summary>
         /// Максимальный сдвиг курса в указанном Mode направлении (задаётся юзером)
         /// </summary>
-        public int MaxD
+        public double MaxD
         {
             get { return maxD; }
             set {
-                    maxD = value;
-                    UpdateOuts();
-
-                    DrawGraph();
-                    if (null != this.PropertyChanged)
-                    {
-                        PropertyChanged(this, new PropertyChangedEventArgs("MaxD"));
-                    }
+                if (maxD == value || h == 0) return;
+                maxD = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("MaxD"));
+                NotifyOutMax();
+                NotifyOutMin();
+                UpdateNext();
             }
         }
 
-        int minD = 10;
+        double minD = double.NaN;
         /// <summary>
         /// Минимальный сдвиг курса в указанном Mode направлении (задаётся юзером)
         /// </summary>
-        public int MinD
+        public double MinD
         {
             get { return minD; }
             set {
+                if (minD == value || h == 0) return;
                 minD = value;
-                UpdateOuts();
-                DrawGraph();
-                if (null != this.PropertyChanged)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs("MinD"));
-                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("MinD"));
+                NotifyOutMax();
+                NotifyOutMin();
+                UpdateNext();
             }
         }
 
-        double inMin = 0.5;
+        double inMin = double.NaN;
         /// <summary>
         /// Минимум возможных входящих значений (левая нижняя точка графика)
         /// </summary>
@@ -96,12 +141,34 @@ namespace BinanceCore
             get { return inMin; }
             set
             {
+                if (inMin == value) return;
                 inMin = value;
-                DrawGraph();
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("InMin"));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("InMinP"));
+                NotifyOutMin();
+                UpdateNext();
             }
         }
 
-        double inMax = 0.5;
+        /// <summary>
+        /// Используется в сеттерах для извещения о том, что изменились выходные значения максимума
+        /// </summary>
+        private void NotifyOutMin()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMin"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMinP"));
+        }
+
+        /// <summary>
+        /// Используется в сеттерах для извещения о том, что изменились выходные значения минимума
+        /// </summary>
+        private void NotifyOutMax()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMax"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OutMaxP"));
+        }
+
+        double inMax = double.NaN;
         /// <summary>
         /// Максимум возможных входящих значений (левая верхняя точка графика)
         /// </summary>
@@ -110,8 +177,12 @@ namespace BinanceCore
             get { return inMax; }
             set
             {
+                if (inMax == value) return;
                 inMax = value;
-                DrawGraph();
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("InMax"));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("InMaxP"));
+                NotifyOutMax();
+                UpdateNext();
             }
         }
 
@@ -131,33 +202,16 @@ namespace BinanceCore
         #endregion
 
         #region Выходные значения графика
-        double outMin = 0.4;
         /// <summary>
         /// Минимум возможных выходных значений (правая нижняя точка графика)
         /// </summary>
-        public double OutMin
-        {
-            get { return outMin; }
-            set
-            {
-                outMin = value;
-                Changed?.Invoke();
-            }
-        }
+        public double OutMin => Mode == SegmentMode.DOWN ? (InMin - MaxD / Divisor) : ((Mode==SegmentMode.UP ? (InMin + MinD / Divisor): (InMin - MinD / Divisor)));
 
-        double outMax = 0.7;
         /// <summary>
         /// Максимум возможных выходных значений (правая верхняя точка графика)
         /// </summary>
-        public double OutMax
-        {
-            get { return outMax; }
-            set
-            {
-                outMax = value;
-                Changed?.Invoke();
-            }
-        }
+        public double OutMax => Mode == SegmentMode.DOWN ? (InMax - MinD / Divisor) : ((Mode==SegmentMode.UP? (InMax + MaxD / Divisor):(InMax + MaxD / Divisor)));
+
         #endregion
         /// <summary>
         /// Пытается превратить любую пару значений в Point(X,Y)
@@ -178,59 +232,19 @@ namespace BinanceCore
                 throw new Exception($"Error Making Point from X:{(x == null ? "NULL" : x)}, Y:{(y == null ? "NULL" : y)}", ex);
             }
         }
-        public void DrawGraph()
-        {
-            if (graphB != null && graphB.RenderSize.Width>0)        //  Чит чтобы не рисовать когда окно не готово
-            {
-                var h = graphB.RenderSize.Height;                   //  определим размеры окошка, где рисуем
-                var w = graphB.RenderSize.Width;
-                pathStart.StartPoint = MakePoint(0, h - InMin * h); //  перенастроим точки многоугольника,
-                pathP2.Point = MakePoint(0, h - InMax * h);         //  символизирующего возможности хода крурса
-                pathP3.Point = MakePoint(w - 1, h - OutMax * h);    //  выставим точки слева на стартовый диапазон по InMin, InMax
-                pathP4.Point = MakePoint(w - 1, h - OutMin * h);    //  и точки справа на выходной согласно посчитанны OutMax, OutMin
-                graphB.Content = SIGNS[(int)Mode];  //  вывод символа роста, падения или плоского графика в кнопку на теле самого графика - если нажать эту кнопку, режим изменится
-            }
-        }
 
-        /// <summary>
-        /// Обновляет значения на выходах в соответствии со значениями на входах и режимом графика
-        /// </summary>
-        /// <param name="silent">Отключает обработчик события об изменении в полях ввода чтобы на экран отражалось сразу, но не зацикливалось эвентами обновления в поле ввода</param>
-        private void UpdateOuts(bool silent = false)
-        {
-            var oldHandler = Changed;
-            if (silent)
-                Changed = null;
+        public double h => graphB.RenderSize.Height>0? graphB.RenderSize.Height:DEFAULT_GRAPH_SIZE;
+        public double w => graphB.RenderSize.Width>0? graphB.RenderSize.Width:DEFAULT_GRAPH_SIZE;
 
-            switch (mode)
-            {
-                case SegmentMode.STOP:
-                    OutMax = InMax + MaxD / Divisor;  //  при стопе график может вырасти не более чем на верхнее число
-                    OutMin = InMin - MinD / Divisor;  //  или упасть не более чем на нижнее число
-                    break;
-
-                case SegmentMode.UP:
-                    OutMax = InMax + MaxD / Divisor;  //  при росте график может вырасти не более чем на верхнее число
-                    OutMin = InMin + MinD / Divisor;  //  и не менее, чем на нижнее
-                    break;
-
-                case SegmentMode.DOWN:
-                    OutMax = InMax - MinD / Divisor;  //  при падении график может упасть сверху не более, чем на нижнее число
-                    OutMin = InMin - MaxD / Divisor;  //  или упасть снизу не далее, чем на верхнее
-                    break;
-            }
-            if (silent)
-                Changed = oldHandler;
-
-        }
+        public Point InMinP => MakePoint(0.5, h - InMin * h);
+        public Point InMaxP => MakePoint(0, h - InMax * h);
+        public Point OutMinP => MakePoint(w-1, h - OutMin * h);
+        public Point OutMaxP => MakePoint(w-1, h - OutMax * h);
 
         public Segment()
         {
             InitializeComponent();
             graphB.Click+=(b,a) => Mode = Mode > 0 ? --Mode : SegmentMode.DOWN; //  циклическое переключение режимов при нажатии на кнопку режима (она же отображает символ режима)
-            DataContext = this;
-            UpdateOuts();
-            DrawGraph();
             TopLevelController.DataContext = this;  //  чтобы работали биндинги
         }
 
