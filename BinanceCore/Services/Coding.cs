@@ -48,42 +48,45 @@ namespace BinanceCore.Services
 
         private static string MakeCode(DateTime end, IEnumerable<BinanceInfo> BinanceInfo, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos)
         {
-            string fractalCode = "";
-            int n = 0;
-            while (pos < end && n < parts)
+            lock (BinanceInfo)
             {
-                var inV = priceAtPos;
-                var inRange = BinanceInfo.Where(k => k.Time >= pos && k.Time < pos.Add(stepLen));
-
-                var outV = priceAtPos;
-
-                if (inRange.Count() > 0)
-                    outV = inRange.Last().RatePrice;
-
-                string fractalStage = "S";
-                int percent = 0;
-
-                if (inV > outV)
+                string fractalCode = "";
+                int n = 0;
+                while (pos < end && n < parts)
                 {
-                    fractalStage = "D";
-                    percent = (int)(-10000 + inV / outV * 10000);
-                }
-                else if (outV > inV)
-                {
-                    fractalStage = "U";
-                    percent = (int)(-10000 + outV / inV * 10000);
-                }
-                fractalStage += percent.ToString("00 ");
-                fractalCode += fractalStage;
+                    var inV = priceAtPos;
+                    var inRange = BinanceInfo.Where(k => k.Time >= pos && k.Time < pos.Add(stepLen));
 
-                ++n;
-                pos += stepLen;
-                pos2 += stepLen;
-                priceAtPos = outV;
+                    var outV = priceAtPos;
 
+                    if (inRange.Count() > 0)
+                        outV = inRange.Last().RatePrice;
+
+                    string fractalStage = "S";
+                    int percent = 0;
+
+                    if (inV > outV)
+                    {
+                        fractalStage = "D";
+                        percent = (int)(-10000 + inV / outV * 10000);
+                    }
+                    else if (outV > inV)
+                    {
+                        fractalStage = "U";
+                        percent = (int)(-10000 + outV / inV * 10000);
+                    }
+                    fractalStage += percent.ToString("00 ");
+                    fractalCode += fractalStage;
+
+                    ++n;
+                    pos += stepLen;
+                    pos2 += stepLen;
+                    priceAtPos = outV;
+
+                }
+                Console.WriteLine("Now fractal is " + fractalCode);
+                return fractalCode;
             }
-            Console.WriteLine("Now fractal is " + fractalCode);
-            return fractalCode;
         }
         public static string LatestCode = "";
 

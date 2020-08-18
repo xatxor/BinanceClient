@@ -159,11 +159,11 @@ namespace BinanceCore.Controls
         /// </summary>
         /// <param name="client">Клиент к бинансу, через который можно обратиться на апи</param>
         /// <param name="KnownStables">Перечисление известных стейбл-коинов (выбиралка их запомнит на будущее чтобы при выборе символа определять, где в нём стейбл)</param>
-        public void LoadSymbols(IEnumerable<string> KnownStables=null)
+        public void LoadSymbols(IEnumerable<string> KnownStables = null)
         {
             if (KnownStables != null) knownStables = KnownStables;  //  Если в параметрах было передано перечисление стейблов, запомним его вместо старого
 
-            SymbolsCB.Items?.Clear();                               //  очистим выбиралку если она не пустая чтобы можно было заменить ей источник данных
+
             var symbols = client.GetExchangeInfo().                 //  загрузим данные о курсах с бинанса
                                 Data.Symbols.Select(s => s.Name).   //  оттуда захватим только имена символов
                                 OrderBy(s => s).ToList();           //  и отсортируем их
@@ -177,7 +177,11 @@ namespace BinanceCore.Controls
                         break;                                      //  и не искать для них дальше соответствия в стейблах чтобы не было дубликатов
                     }
 
-            SymbolsCB.ItemsSource = symbolsWithStables;             //  в итоге загрузим список подходящих для торговли символов в выбиралку
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                SymbolsCB.Items?.Clear();                               //  очистим выбиралку если она не пустая чтобы можно было заменить ей источник данных
+                SymbolsCB.ItemsSource = symbolsWithStables;             //  в итоге загрузим список подходящих для торговли символов в выбиралку
+            });
         }
 
         /// <summary>

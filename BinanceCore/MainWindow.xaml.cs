@@ -99,7 +99,12 @@ namespace BinanceCore
                 return _telega;
             }
         }
-
+        /// <summary>
+        /// Поток параллельной загрузки символов при старте программы
+        /// </summary>
+        System.Threading.Thread SymbolsLoaderThr;
+        System.Threading.Thread BalanceUpdaterTrh;
+        System.Threading.Thread GraphThr;
         public MainWindow()
         {
             InitializeComponent();
@@ -108,15 +113,18 @@ namespace BinanceCore
             symbolSelector.client = client;                    //  выдача показывалке балансов клиента для связи с бинансом
 
             timer.Elapsed += Timer_Elapsed;             //  привязка ежесекундного таймера
-            symbolSelector.LoadSymbols(new string[] { "USDT" });
- //           symbolSelector.SetPair("LTCUSDT");                  //  установим торговую пару по умолчанию
+
+            SymbolsLoaderThr = new System.Threading.Thread(LoadSymbols);
+            SymbolsLoaderThr.Start();
+
+            //           symbolSelector.SetPair("LTCUSDT");                  //  установим торговую пару по умолчанию
             symbolSelector.SymbolSelected += symbolChanged;     //  При изменении выбора торговой пары
 
             followA.GotFall += FollowA_GotFall;
             followA.GotRise += FollowA_GotRise;
             followA.LostFall += FollowA_LostFall;
             followA.LostRise += FollowA_LostRise;
-            followA.LogMsg += async (s,msg)=>await Telega.TextMessageMaster($"<i>{msg}</i>");
+            followA.LogMsg += async (s, msg) => await Telega.TextMessageMaster($"<i>{msg}</i>");
 
             addFractalB.Click += (s, e) => CreateFractalConfiguration();
             symbolSelector.StableSet += symbolChanged;          //  не важно, изменилась ли вся пара или часть
@@ -134,17 +142,28 @@ namespace BinanceCore
             processor.Limit += LimitCommand;
             processor.Save += (id) => saveB_Click(null, null);
 
+            BalanceUpdaterTrh = new System.Threading.Thread(UpdateBalance);
+            BalanceUpdaterTrh.Start();
 
-            var nowBalance = symbolSelector.UpdateBalance();
             try
             {
-                Telega.TextMessageMaster("BinanceCore v.0.7 started.\n" + nowBalance);
-            }catch(Exception ex)
+                Telega.TextMessageMaster("BinanceCore v.0.7 started.");
+            }
+            catch (Exception ex)
             {
                 Log("Telegram start failure: " + ex.Message);
             }
+
         }
 
+        private void LoadSymbols()
+        {
+            symbolSelector.LoadSymbols(new string[] { "USDT" });
+        }
+        private void UpdateBalance()
+        {
+            symbolSelector.UpdateBalance();
+        }
 
         private void LimitCommand(decimal winRise, decimal lostRise, decimal winFall, decimal lostFall)
         {
@@ -297,9 +316,13 @@ namespace BinanceCore
 
         private void Log(string v)
         {
-            Title = v;
-            Console.WriteLine(v);
-            this.DoEvents();
+            Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                v = v ?? "### NULL STRING ###";
+                Title = v;
+                Console.WriteLine(v);
+                this.DoEvents();
+            });
         }
 
         List<BinanceInfo> cache = new List<BinanceInfo>();
@@ -315,20 +338,28 @@ namespace BinanceCore
         #region Реакции на нажатия
         private void Graph_Clicked(object sender, RoutedEventArgs e)
         {
-            iv.LoadBitmap(GetGraph());
-            followA.PriceUpdate(LastPrice);
-            symbolSelector.LastPrice = LastPrice;
-            #region Отрисовка фракталов
-            canv.Children.Clear();  //  очистка накладки на график - той накладки, где рисуются все найденные фракталы
+            if (GraphThr != null) return;
+            GraphThr = new System.Threading.Thread(UpdateGraphic);
+            GraphThr.Start();
+        }
 
-            foreach (var configurator in fractalsSP.Children)           //  перебор всех фракталов, загруженных в плашки конфигураций
-                Drawing.DrawFoundFractals(                              //  рисуем найденные случаи очередного фрактала
-                    FractalMath.FindFractal(                            //  для этого находим фрактал
-                        (configurator as FractalConfiguration).FractalDefinition, //  очередной
-                        Coding.LatestCode),                             //  в коде графика
-                    canv);
-            #endregion
-
+        private void UpdateGraphic()
+        {
+            var bmp = GetGraph();
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                iv.LoadBitmap(bmp);
+                followA.PriceUpdate(LastPrice);
+                symbolSelector.LastPrice = LastPrice;
+                canv.Children.Clear();  //  очистка накладки на график - той накладки, где рисуются все найденные фракталы
+                foreach (var configurator in fractalsSP.Children)           //  перебор всех фракталов, загруженных в плашки конфигураций
+                    Drawing.DrawFoundFractals(                              //  рисуем найденные случаи очередного фрактала
+                        FractalMath.FindFractal(                            //  для этого находим фрактал
+                            (configurator as FractalConfiguration).FractalDefinition, //  очередной
+                            Coding.LatestCode),                             //  в коде графика
+                        canv);
+            });
+            GraphThr = null;
         }
 
         private Bitmap GetGraph()
@@ -337,17 +368,22 @@ namespace BinanceCore
             DateTime fin = LastMoment.AddSeconds(-0.0001);
             var graphDuration = new TimeSpan(1, 0, 0, 0);
 
-            cache.RemoveAll(r => r.Time < fin.AddDays(-graphDuration.TotalDays));       //   убираем из кэша устаревшие данные (те что в прошлом за пределами графика)
+            lock (cache)
+            {
+                cache.RemoveAll(r => r.Time < fin.AddDays(-graphDuration.TotalDays));       //   убираем из кэша устаревшие данные (те что в прошлом за пределами графика)
+            }
             long _last = LastCached;
             var BinanceInfo = repos.GetRangeOfElementsByTime(                           // Выгрузим из БД записи по дате
                     fin, DateTime.UtcNow, SelectedPair, true)   // до текущего момента на длину графика заданную пару с учётом полноты SHORT
                 .Where(tr => tr.Id > _last);                                       // и выберем оттуда только те записи, у которых номера больше, чем нам уже известны и есть в кэше
-
-            cache.AddRange(BinanceInfo);                                                // добавляем свежие данные в кэш
-
+            lock (cache)
+            {
+                cache.AddRange(BinanceInfo);                                                // добавляем свежие данные в кэш
+            }
             Log("History loaded. Drawing...");
             Coding.MakeCode(fin, graphDuration, cache);
             Bitmap bmp = Drawing.MakeGraph("", fin, graphDuration, cache);
+            Log("Done");
             return bmp;
         }
 
