@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="98" d:DesignWidth="54">
     <Grid x:Name="TopLevelController">
-        <TextBox HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MaxD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" FontSize="16" FontFamily="Arial" />
+        <TextBox ToolTip="Изменение относительно прошлой свечи в процентах" HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MaxD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" FontSize="16" FontFamily="Arial" />
         <Canvas Margin="0 22" ClipToBounds="True">
             <Path Fill="Red" Stroke="Black">
                 <Path.Data>
@@ -31,7 +31,7 @@
         </Canvas>
         <Label Margin="-2 16" Content="{Binding Path=Title, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Left" FontSize="12" Opacity="1" />
         <Button Margin="0 22" x:Name="graphB" Content="{Binding Path=ModeSign, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="20" Opacity="0.4" />
-        <TextBox HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MinD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="16" />
+        <TextBox ToolTip="Изменение относительно прошлой свечи в процентах" HorizontalAlignment="Stretch" Height="22" Text="{Binding Mode=TwoWay, Path=MinD, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="16" />
 
     </Grid>
 </UserControl>

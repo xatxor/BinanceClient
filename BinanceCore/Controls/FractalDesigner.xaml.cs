@@ -114,8 +114,8 @@ namespace BinanceCore
                 {
                     var segment = segments[n];      //  выберем очередной сегмент на экране
                     var subParts = parts[n].Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
-                    segment.MinD = int.Parse(subParts[1]);  //  разбив его описание ещё на части узнаем величины    
-                    segment.MaxD = int.Parse(subParts[2]);  //  Максимума, минимума и режима ожиданий
+                    segment.MinD = double.Parse(subParts[1]);  //  разбив его описание ещё на части узнаем величины    
+                    segment.MaxD = double.Parse(subParts[2]);  //  Максимума, минимума и режима ожиданий
                     segment.SetModeByLetter(subParts[0]);   //  пропишем величины в свойства сегмента на экране
                 }
                 StepCount = parts.Length;                   //  включим то количество сегментов на экране, сколько обнаружилось в строке кода

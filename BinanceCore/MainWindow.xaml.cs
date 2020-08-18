@@ -136,7 +136,13 @@ namespace BinanceCore
 
 
             var nowBalance = symbolSelector.UpdateBalance();
-            Telega.TextMessageMaster("BinanceCore v.0.7 started.\n"+nowBalance);
+            try
+            {
+                Telega.TextMessageMaster("BinanceCore v.0.7 started.\n" + nowBalance);
+            }catch(Exception ex)
+            {
+                Log("Telegram start failure: " + ex.Message);
+            }
         }
 
 
@@ -542,7 +548,7 @@ namespace BinanceCore
             var cfg = new FractalConfiguration();
             if (def != null)
             {
-                cfg.Code = def.Code;                                          //  загружаем туда код фрактала
+                cfg.Code = def.Code.GoodPoint();                                          //  загружаем туда код фрактала
                 cfg.Title = def.Title;                                        //  устанавливаем название
                 cfg.FractalColor = def.Color.ToColor();                              //  цвет парсим из строки настройки (в настройках цвет в виде #ffffff
                 cfg.Symbol = def.Symbol;                                       //  устанавливаем символ пометки фрактала

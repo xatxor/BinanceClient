@@ -88,6 +88,9 @@ namespace BinanceCore
                                                   new Action(delegate { }));
         }
 
+        static string goodPoint = 7.7.ToString().Trim('7');
+        public static string GoodPoint(this string s) => s.Replace(".", goodPoint).Replace(",", goodPoint);
+
     }
 
     public delegate void LogDgt(object sender, string msg);
