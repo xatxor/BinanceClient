@@ -8,7 +8,7 @@
              d:DesignHeight="450" d:DesignWidth="639.916">
     <Control.Resources>
         <Style TargetType="TextBox">
-            <Setter Property="Margin" Value="0 18"/>
+            <Setter Property="Margin" Value="0 1"/>
         </Style>
         <Style TargetType="Label">
             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -26,9 +26,7 @@
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
-        <Button x:Name="Save" Content="Save" Grid.Row="4" HorizontalAlignment="Right" Padding="30 0" FontSize="16" Grid.Column="1" />
         <TextBox x:Name="binkey" Text="" Grid.Row="0" Grid.Column="1" />
         <TextBox x:Name="binsecret" Text="" Grid.Row="1" Grid.Column="1" />
         <TextBox x:Name="tgmtoken" Text="" Grid.Row="2" Grid.Column="1" />

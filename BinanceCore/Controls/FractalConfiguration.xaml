@@ -5,8 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BinanceCore"
              mc:Ignorable="d" 
-             d:DesignHeight="124" d:DesignWidth="418">
-    <Grid>
+             d:DesignHeight="224" d:DesignWidth="418">
+    <Grid x:Name="TopLevelController">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="124"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
         <StackPanel>
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -29,5 +35,8 @@
             <local:FractalDesigner x:Name="Designer" Height="98" HorizontalAlignment="Stretch" />
         </StackPanel>
         <local:ColorPicker x:Name="colorPicker" Grid.ColumnSpan="2" Background="White" Visibility="Hidden"/>
+        
+        <Label Grid.Row="1" Content="Rules" Padding="0"/>
+        <TextBox Grid.Row="2" Text="{Binding Path=Rules, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
     </Grid>
 </UserControl>

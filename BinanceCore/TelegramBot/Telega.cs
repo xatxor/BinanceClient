@@ -30,12 +30,16 @@ namespace BinanceCore.TelegramBot
         private CommandProcessor processor=new CommandProcessor();
         public Telega(string key, long master)
         {
-            _bot = new TelegramBotClient(key);
-            _master = master;
-            _bot.OnMessage += OnMessage;
-            _bot.OnCallbackQuery += OnCallback;
-            _bot.StartReceiving();
-            Log += Bot_Log;
+            try
+            {
+                _bot = new TelegramBotClient(key);
+                _master = master;
+                _bot.OnMessage += OnMessage;
+                _bot.OnCallbackQuery += OnCallback;
+                _bot.StartReceiving();
+                Log += Bot_Log;
+            }
+            finally { }
         }
 
         private void OnCallback(object sender, CallbackQueryEventArgs e)
@@ -69,6 +73,7 @@ namespace BinanceCore.TelegramBot
 
         async internal Task<int> TextMessage(string v, long chatid)
         {
+            if (_bot == null) return 0;
             try
             {
                 var sentMsg = await _bot.SendTextMessageAsync(chatid, v, Telegram.Bot.Types.Enums.ParseMode.Html, true);
@@ -83,6 +88,8 @@ namespace BinanceCore.TelegramBot
 
         async internal Task<int> PhotoMessage(Stream stream, long chatid, string caption = null)
         {
+            if (_bot == null) return 0;
+
             try
             {
                 var sentMsg = await _bot.SendPhotoAsync(chatid, stream, caption);
@@ -103,6 +110,7 @@ namespace BinanceCore.TelegramBot
 
         async internal Task<int> PhotoMessageMaster(Stream stream, string caption = null)
         {
+
             return await PhotoMessage(stream, _master, caption);
         }
 
@@ -113,6 +121,8 @@ namespace BinanceCore.TelegramBot
 
         internal async Task CallbackMenu(string[][] v, string text, int to)
         {
+            if (_bot == null) return;
+
             var allCallbackss = new List<List<Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton>>();
             Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup kb2 = null;
 
@@ -135,6 +145,8 @@ namespace BinanceCore.TelegramBot
 
         internal async Task Menu(string[][] mainMenu, string v, long chatID)
         {
+            if (_bot == null) return;
+
             var allbuttons = new List<List<Telegram.Bot.Types.ReplyMarkups.KeyboardButton>>();
             Telegram.Bot.Types.ReplyMarkups.ReplyKeyboardMarkup kb = null;
             foreach (var ss in mainMenu)

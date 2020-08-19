@@ -55,7 +55,7 @@
                 <TabItem Header="Settings">
                     <ScrollViewer HorizontalAlignment="Stretch">
                         <StackPanel x:Name="setts" >
-                            <Controls:Settings x:Name="settings"/>
+                            <Controls:Settings x:Name="settings" Height="150"/>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>

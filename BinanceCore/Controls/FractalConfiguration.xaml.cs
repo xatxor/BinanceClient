@@ -1,4 +1,5 @@
 ﻿using BinanceCore.Entities;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -8,14 +9,15 @@ namespace BinanceCore
     /// <summary>
     /// Редактор последовательности одного фрактала максимум из 7 звеньев
     /// </summary>
-    public partial class FractalConfiguration : UserControl
+    public partial class FractalConfiguration : UserControl, INotifyPropertyChanged
     {
         public delegate void DeleteRequestedDgt(FractalConfiguration sender);
         /// <summary>
         /// Событие вызывается если пользователь нажал на панели фрактала крестик удаления
         /// </summary>
         public event DeleteRequestedDgt DeleteRequested;
-        
+        public event PropertyChangedEventHandler PropertyChanged;
+
         /// <summary>
         /// Конструктор настраивает инерфейс и события
         /// </summary>
@@ -26,6 +28,7 @@ namespace BinanceCore
             colorPicker.Picked +=(c)=> FractalColor = c;            //  привяжем событие к выбиралке цвета на случай если выберут другой цвет
             deleteB.Click+=(b,a)=> DeleteRequested?.Invoke(this);   //  привяжем генерацию события об удалении к нажатию на крестик удаления
             ShowColorPickerB.Click+=(b,a) => colorPicker.Visibility = Visibility.Visible;   //  При нажатии на выбор цвета покажем выбиралку цета
+            TopLevelController.DataContext = this;
         }
 
         /// <summary>
@@ -64,6 +67,18 @@ namespace BinanceCore
             set { ShowColorPickerB.Background = new SolidColorBrush(value); }
         }
 
+        string rules = "";
+        public string Rules
+        {
+            get => rules;
+            set
+            {
+                if (rules == value) return;
+                rules = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Rules"));
+            }
+        }
+
         /// <summary>
         /// Название фрактала (ассоциировано с текстовым полем ввода)
         /// </summary>
@@ -88,8 +103,22 @@ namespace BinanceCore
         /// </summary>
         public string Code
         {
-            get => Designer.Code; 
-            set => Designer.Code = value; 
+            get => Designer.Code+"§"+Rules; 
+            set 
+            {
+                var rules = "";
+                var code = value;
+                if(value.Contains("§"))
+                {
+                    var parts=value.Split(new char[] { '§' },System.StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length > 0)
+                        code = parts[0];
+                    if (parts.Length > 1)
+                        rules = parts[1];
+                }
+                Designer.Code = code;
+                Rules = rules;
+            }
         }
         #endregion
     }

@@ -15,44 +15,7 @@ namespace BinanceCore.Services
     /// </summary>
     class Drawing
     {
-        public static int timeShift = -3;
-        static Font coinFont = System.DrawingCore.SystemFonts.CaptionFont;
-        static Font dateFont = System.DrawingCore.SystemFonts.DefaultFont;
-        static Font priceFont = System.DrawingCore.SystemFonts.DefaultFont;
-        static Font minMaxFont = System.DrawingCore.SystemFonts.DialogFont;
-        static Font minMax2Font = System.DrawingCore.SystemFonts.DialogFont;
-        static PrivateFontCollection foo;
-        static PrivateFontCollection fooR;
-        static PrivateFontCollection fooM;
-        static PrivateFontCollection fooB;
-        static float baseSize = 35;
-        static float lessSize = baseSize * 32 / 42;
-        static float miniSize = baseSize * 16 / 28F;
-        /// <summary>
-        /// Инициализирует шрифты, нужные для рисования графика
-        /// </summary>
-        private static void initFOnts()
-        {
-            // 'PrivateFontCollection' is in the 'System.Drawing.Text' namespace
-            /*   if (foo == null)
-               {
-                   foo = new PrivateFontCollection();
-                   // Provide the path to the font on the filesystem
-                   foo.AddFontFile("coin.ttf");
-
-                   fooR = new PrivateFontCollection();
-                   fooR.AddFontFile("regular.ttf");
-                   fooM = new PrivateFontCollection();
-                   fooM.AddFontFile("medium.ttf");
-                   fooB = new PrivateFontCollection();
-                   fooB.AddFontFile("bold.ttf");
-                   coinFont = new Font((FontFamily)fooB.Families[0], baseSize, GraphicsUnit.Pixel);
-                   dateFont = new Font((FontFamily)fooR.Families[0], miniSize, GraphicsUnit.Pixel);
-                   priceFont = new Font((FontFamily)fooM.Families[0], lessSize, GraphicsUnit.Pixel);
-                   minMaxFont = new Font((FontFamily)fooM.Families[0], miniSize, GraphicsUnit.Pixel);
-                   minMax2Font = new Font((FontFamily)fooR.Families[0], miniSize, GraphicsUnit.Pixel);
-               }*/
-        }
+        static Font font = System.DrawingCore.SystemFonts.DefaultFont;
         /// <summary>
         /// Определяет вертикальное положение значения на графике
         /// </summary>
@@ -138,25 +101,17 @@ namespace BinanceCore.Services
         /// <param name="w">Ширина итоговой картинки</param>
         /// <param name="h">Высота итоговой картинки</param>
         /// <returns></returns>
-        public static Bitmap MakeGraph(string CoinName, DateTime end, TimeSpan len, IEnumerable<BinanceInfo> BinanceInfo, int w=640, int h=320)
+        public static Bitmap MakeGraph(DateTime end, TimeSpan len, IEnumerable<Candle> candles, int w=640, int h=320)
         {
-            lock (BinanceInfo)
             {
-                List<Tuple<DateTime, decimal>> history = new List<Tuple<DateTime, decimal>>();
-                foreach (var item in BinanceInfo)
-                {
-                    Tuple<DateTime, decimal> tuple = new Tuple<DateTime, decimal>(item.Time, item.RatePrice);
-                    history.Add(tuple);
-                }
-                initFOnts();
                 var hoursS = "24h";
 
-                timeShift = 0;
                 var start = end.Subtract(len);
-                var start2 = start.AddHours(timeShift);
-                var end2 = end.AddHours(timeShift);
 
-                var vals = history.Select(hh => hh.Item2);
+                var vals = candles.Select(hh => hh.outV).ToList();
+                vals.AddRange(candles.Select(hh => hh.inV));
+                vals.AddRange(candles.Select(hh => hh.maxV));
+                vals.AddRange(candles.Select(hh => hh.minV));
                 var max = vals.Count() > 0 ? vals.Max() : 0;
                 var min = vals.Count() > 0 ? vals.Min() : 0;
                 var d = max - min;
@@ -166,31 +121,23 @@ namespace BinanceCore.Services
                     min = max - d * (decimal).03;
                     max = max + d * (decimal).03;
                 }
-                /*            max += d / 1.8;
-                            min -= d / 1.6;*/
                 if (min < 0) min = 0;
                 int graphH = 160;
 
 
-                var stepLen = new TimeSpan(0, 15, 0);
                 int parts = 24 * 4;
 
                 if (len.TotalDays == 7)
                 {
-                    stepLen = new TimeSpan(2, 0, 0);
                     hoursS = "7d";
                     parts = 7 * 12;
                 }
                 if (len.TotalDays == 30)
                 {
-                    stepLen = new TimeSpan(6, 0, 0);
                     hoursS = "30d";
                     parts = 30 * 4;
                 }
-                var pos = start;
-                var pos2 = start2;
-                var priceAtPos = history.Count() > 0 ? history.First().Item2 : 0;
-
+                var priceAtPos = candles.Count() > 0 ? candles.First().inV : 0;
 
                 int xPad = 5;
 
@@ -199,193 +146,172 @@ namespace BinanceCore.Services
                 double cW = w - xPad * 2;
                 double partW = cW / parts;
                 double candleW = partW - 2;
-                var sumColor = new SolidBrush(Color.FromArgb(100, 255, 255, 255));
-                var FillColor = new SolidBrush(Color.FromArgb(255, 7, 190, 170));// Brushes.DarkBlue;
-                var AntiFillColor = new SolidBrush(Color.FromArgb(255, 247, 50, 91));// Brushes.DarkBlue;
 
 
                 using (var g = Graphics.FromImage(bmp))
                 {
                     List<decimal> tradeSums = new List<decimal>();
-                    DrawGraph(end, BinanceInfo, max, min, graphH, stepLen, parts, pos, pos2, ref priceAtPos, h, xPad, partW, g, tradeSums);
-                    pos = start;
-                    var maxTrade = tradeSums.Max();
+                    DrawGraph(candles, max, min, graphH, parts, h, xPad, partW, g);
+                    DrawSums(h, xPad, partW, candleW, g, tradeSums);
+                    DrawLatestPrice(candles, g);
 
-                    var sumsMaxHeight = 25;
+                    DrawDate(w, end, g);
 
-                    int ti = 0;
-                    while (pos < end.AddHours(3) && ti < tradeSums.Count())
-                    {
-                        var sumP = ValueToPos(maxTrade, 0, sumsMaxHeight, tradeSums[ti]);
-                        if (sumP < 1) sumP = 1;
-                        int cX = (int)(xPad + (ti + 0.5F) * partW);
-
-                        var rect = new Rectangle((int)(cX - candleW / 2), h - (int)(sumP) - 50, (int)(candleW), (int)sumP);
-                        g.FillRectangle(sumColor, rect);
-
-                        ++ti;
-                        pos += stepLen;
-                    }
-
-                    var curVal = history.Count() > 0 ? history.Last().Item2 : 0;
-                    string valPrice = ValPrice(curVal);
-                    var nameColor = FillColor;
-                    if (history.Count() > 1 && history.Last().Item2 < history.ElementAt(history.Count() - 2).Item2)
-                        nameColor = AntiFillColor;
-                    string priceString = $"≈ {valPrice}";
-                    int titleSize = 1000;
-                    float divider = 1;
-                    SizeF coinNameSize = new SizeF(100, 10);
-                    while (titleSize > 380 && fooB != null)
-                    {
-                        coinFont = new Font((FontFamily)fooB.Families[0], baseSize / divider, GraphicsUnit.Pixel);
-                        dateFont = new Font((FontFamily)fooR.Families[0], miniSize / divider, GraphicsUnit.Pixel);
-                        priceFont = new Font((FontFamily)fooM.Families[0], lessSize / divider, GraphicsUnit.Pixel);
-
-                        coinNameSize = g.MeasureString(CoinName, coinFont);
-                        var priceSize = g.MeasureString(priceString, priceFont);
-                        titleSize = (int)(coinNameSize.Width + priceSize.Width);
-                        divider *= 1.01F;
-                    }
-
-                    g.DrawString(CoinName, coinFont, nameColor, 5, 12 - 4);
-                    g.DrawString(priceString, priceFont, Brushes.White, coinNameSize.Width, 18 - 8);
-
-                    var dateS = end2.ToString("dd.MM.yyyy HH:mm UTC");
-                    var dateStringSize = g.MeasureString(dateS, dateFont);
-                    g.DrawString($"{dateS}", dateFont, Brushes.White, w - dateStringSize.Width, 22);
-
-                    int minMaxTop = -10 + 6;
                     Pen gridPen = new Pen(Color.FromArgb(30, Color.White)); //  цвет линий процентной сетки
-                    decimal mid = (max + min) / 2;
-                    decimal plusPercent = mid * 1.01m;
-                    decimal minusPercent = mid - (plusPercent - mid);
-                    var plusLevel = (int)ValueToPos(max, min, graphH, plusPercent);
-                    var minusLevel = (int)ValueToPos(max, min, graphH, minusPercent);
-                    var midLevel = (int)ValueToPos(max, min, graphH, mid);
-                    double percentValue = -ValueToPos(max, min, graphH, mid) + ValueToPos(max, min, graphH, plusPercent);
+                    DrawDaysGrid(end, len, w, h, start, xPad, g, gridPen);
 
-                    if (len.TotalHours == 24 * 7)
-                    {
-                        pos = new DateTime(start.Year, start.Month, start.Day, start.Hour, 0, 0).AddHours(1 + timeShift);
-                        while (pos < end.AddHours(3))
-                        {
-                            int cX = (int)(xPad + (pos.Subtract(start.AddHours(+timeShift)).TotalHours * (w - xPad * 2) / 24 / 7));
+                    DrawPercentGrid(w, h, max, min, graphH, g, gridPen);
 
-                            g.DrawLine(gridPen, (int)(cX), (int)(h / 4), (int)(cX), (int)(h * 3 / 4));
-                            pos = pos.AddDays(1);
-                        }
-
-                    }
-
-                    if (len.TotalHours == 24 * 30)
-                    {
-                        pos = new DateTime(start.Year, start.Month, start.Day, start.Hour, 0, 0).AddHours(1 + timeShift);
-                        while (pos < end.AddHours(3))
-                        {
-                            int cX = (int)(xPad + (pos.Subtract(start.AddHours(+timeShift)).TotalHours * (w - xPad * 2) / 24 / 30));
-
-                            g.DrawLine(gridPen, (int)(cX), (int)(h / 4), (int)(cX), (int)(h * 3 / 4));
-                            pos = pos.AddDays(1);
-                        }
-
-                    }
-
-                    if (percentValue >= 5)
-                    {
-                        g.DrawLine(gridPen, 0, midLevel + 79, w, midLevel + 79);
-                        //                g.DrawLine(gridPen, 0, plusLevel+79, w, plusLevel+79);
-                        //              g.DrawLine(gridPen, 0, minusLevel+79, w, minusLevel+79);
-
-                        int p = 1;
-                        while (percentValue * p < h / 4)
-                        {
-                            var add = (int)percentValue * p;
-                            g.DrawLine(gridPen, 0, midLevel + add + 79, w, midLevel + add + 79);
-                            g.DrawLine(gridPen, 0, midLevel - add + 79, w, midLevel - add + 79);
-                            ++p;
-                        }
-                    }
-
-                    var maxS = history.Count > 0 ? $" {hoursS} = {ValPrice(history.Select(h => h.Item2).Max())}" : "";
-                    var maxSSize = g.MeasureString(maxS, minMax2Font);
-                    var maxSSize2 = g.MeasureString("MAX", minMaxFont);
-                    g.DrawString("MAX", minMaxFont, Brushes.White, w - 4 - maxSSize.Width - maxSSize2.Width, h - 10 - maxSSize.Height + minMaxTop);
-                    g.DrawString(maxS, minMax2Font, Brushes.White, w - 4 - maxSSize.Width, h - 10 - maxSSize.Height + minMaxTop);
-                    g.DrawString($"MIN", minMaxFont, Brushes.White, 8, h - 10 - maxSSize.Height + minMaxTop);
-                    var minS = history.Count > 0 ? $" {hoursS} = {ValPrice(history.Select(h => h.Item2).Min())}" : "";
-                    var minSSize = g.MeasureString(minS, minMax2Font);
-                    g.DrawString(minS, minMax2Font, Brushes.White, 10 + 50, h - 10 - maxSSize.Height + minMaxTop);
-
+                    DrawMinMax(candles, w, h, hoursS, g, -4);
                 }
 
 
                 return bmp;
             }
         }
-        private static string DrawGraph(DateTime end, IEnumerable<BinanceInfo> BinanceInfo, decimal max, decimal min, int graphH, TimeSpan stepLen, int parts, DateTime pos, DateTime pos2, ref decimal priceAtPos, int h, int xPad, double partW, Graphics g, List<decimal> tradeSums)
+
+        private static void DrawDate(int w, DateTime end2, Graphics g)
         {
-            lock (BinanceInfo)
+            var dateS = end2.ToString("dd.MM.yyyy HH:mm UTC");
+            var dateStringSize = g.MeasureString(dateS, font);
+            g.DrawString($"{dateS}", font, Brushes.White, w - dateStringSize.Width, 22);
+        }
+
+        static SolidBrush FillColor = new SolidBrush(Color.FromArgb(255, 7, 190, 170));// Brushes.DarkBlue;
+        static SolidBrush AntiFillColor = new SolidBrush(Color.FromArgb(255, 247, 50, 91));// Brushes.DarkBlue;
+        static SolidBrush sumColor = new SolidBrush(Color.FromArgb(100, 255, 255, 255));
+
+
+        private static void DrawLatestPrice(IEnumerable<Candle> candles, Graphics g)
+        {
+            var curVal = candles.Count() > 0 ? candles.Last().outV : 0;
+            string valPrice = ValPrice(curVal);
+            var priceColor = FillColor;
+            if (candles.Count() > 1 && candles.Last().outV < candles.ElementAt(candles.Count() - 2).outV)
+                priceColor = AntiFillColor;
+            string priceString = $"≈ {valPrice}";
+            SizeF coinNameSize = new SizeF(100, 10);
+            g.DrawString(priceString, font, priceColor, coinNameSize.Width, 18 - 8);
+        }
+
+        private static void DrawSums(int h, int xPad, double partW, double candleW, Graphics g, List<decimal> tradeSums)
+        {
+            if (tradeSums.Count == 0) return;
+            var maxTrade = tradeSums.Max();
+
+            var sumsMaxHeight = 25;
+
+            int ti = 0;
+            while (ti < tradeSums.Count())
+            {
+                var sumP = ValueToPos(maxTrade, 0, sumsMaxHeight, tradeSums[ti]);
+                if (sumP < 1) sumP = 1;
+                int cX = (int)(xPad + (ti + 0.5F) * partW);
+
+                var rect = new Rectangle((int)(cX - candleW / 2), h - (int)(sumP) - 50, (int)(candleW), (int)sumP);
+                g.FillRectangle(sumColor, rect);
+
+                ++ti;
+            }
+        }
+
+        private static void DrawPercentGrid(int w, int h, decimal max, decimal min, int graphH, Graphics g, Pen gridPen)
+        {
+            decimal mid = (max + min) / 2;
+            decimal plusPercent = mid * 1.01m;
+            decimal minusPercent = mid - (plusPercent - mid);
+            var plusLevel = (int)ValueToPos(max, min, graphH, plusPercent);
+            var minusLevel = (int)ValueToPos(max, min, graphH, minusPercent);
+            var midLevel = (int)ValueToPos(max, min, graphH, mid);
+            double percentValue = -ValueToPos(max, min, graphH, mid) + ValueToPos(max, min, graphH, plusPercent);
+
+
+            if (percentValue >= 5)
+            {
+                g.DrawLine(gridPen, 0, midLevel + 79, w, midLevel + 79);
+                //                g.DrawLine(gridPen, 0, plusLevel+79, w, plusLevel+79);
+                //              g.DrawLine(gridPen, 0, minusLevel+79, w, minusLevel+79);
+
+                int p = 1;
+                while (percentValue * p < h / 4)
+                {
+                    var add = (int)percentValue * p;
+                    g.DrawLine(gridPen, 0, midLevel + add + 79, w, midLevel + add + 79);
+                    g.DrawLine(gridPen, 0, midLevel - add + 79, w, midLevel - add + 79);
+                    ++p;
+                }
+            }
+        }
+
+        private static void DrawDaysGrid(DateTime end, TimeSpan len, int w, int h, DateTime start,int xPad, Graphics g, Pen gridPen)
+        {
+            if (len.TotalHours == 24 * 7)
+            {
+                var pos = new DateTime(start.Year, start.Month, start.Day, start.Hour, 0, 0).AddHours(1);
+                while (pos < end.AddHours(3))
+                {
+                    int cX = (int)(xPad + (pos.Subtract(start).TotalHours * (w - xPad * 2) / 24 / 7));
+
+                    g.DrawLine(gridPen, (int)(cX), (int)(h / 4), (int)(cX), (int)(h * 3 / 4));
+                    pos = pos.AddDays(1);
+                }
+
+            }
+
+            if (len.TotalHours == 24 * 30)
+            {
+                var pos = new DateTime(start.Year, start.Month, start.Day, start.Hour, 0, 0).AddHours(1);
+                while (pos < end.AddHours(3))
+                {
+                    int cX = (int)(xPad + (pos.Subtract(start).TotalHours * (w - xPad * 2) / 24 / 30));
+
+                    g.DrawLine(gridPen, (int)(cX), (int)(h / 4), (int)(cX), (int)(h * 3 / 4));
+                    pos = pos.AddDays(1);
+                }
+
+            }
+        }
+
+        private static void DrawMinMax(IEnumerable<Candle> candles, int w, int h, string hoursS, Graphics g, int minMaxTop)
+        {
+            var maxS = candles.Count() > 0 ? $" {hoursS} = {ValPrice(candles.Select(h => h.outV).Max())}" : "";
+            var maxSSize = g.MeasureString(maxS, font);
+            var maxSSize2 = g.MeasureString("MAX", font);
+            g.DrawString("MAX", font, Brushes.White, w - 4 - maxSSize.Width - maxSSize2.Width, h - 10 - maxSSize.Height + minMaxTop);
+            g.DrawString(maxS, font, Brushes.White, w - 4 - maxSSize.Width, h - 10 - maxSSize.Height + minMaxTop);
+            g.DrawString($"MIN", font, Brushes.White, 8, h - 10 - maxSSize.Height + minMaxTop);
+            var minS = candles.Count() > 0 ? $" {hoursS} = {ValPrice(candles.Select(h => h.outV).Min())}" : "";
+            var minSSize = g.MeasureString(minS, font);
+            g.DrawString(minS, font, Brushes.White, 10 + 50, h - 10 - maxSSize.Height + minMaxTop);
+        }
+
+        private static void DrawGraph(IEnumerable<Candle> candless, decimal max, decimal min, int graphH, int parts, int h, int xPad, double partW, Graphics g)
+        {
+            lock (candless)
             {
                 double candleW = partW - 2;
-
                 var FillColor = new SolidBrush(Color.FromArgb(255, 7, 190, 170));// Brushes.DarkBlue;
                 var AntiFillColor = new SolidBrush(Color.FromArgb(255, 247, 50, 91));// Brushes.DarkBlue;
-                string fractalCode = "";
-                int n = 0;
-                while (pos < end && n < parts)
+                var candles = candless.ToArray();
+                for(int n=0;n<parts && n<candles.Count();n++)
                 {
-                    var inV = priceAtPos;
-                    var inRange = BinanceInfo.Where(k => k.Time >= pos && k.Time < pos.Add(stepLen));
-                    var tradesRange = BinanceInfo.Where(k => k.Time >= pos2 && k.Time < pos2.Add(stepLen));
-                    var tradeSum = tradesRange.Select(tr => tr.TradeQuantity).Sum();
-                    tradeSums.Add(tradeSum);
+                    var candle = candles[n];
 
-                    var outV = priceAtPos;
-
-                    if (inRange.Count() > 0)
-                        outV = inRange.Last().RatePrice;
-
-
-                    var minV = Math.Min(inV, outV);
-                    if (inRange.Count() > 0)
-                        minV = inRange.Select(r => r.RatePrice).Min();
-
-                    var maxV = Math.Max(inV, outV);
-                    if (inRange.Count() > 0)
-                        maxV = inRange.Select(r => r.RatePrice).Max();
-                    var inP = h - ValueToPos(max, min, graphH, inV) - 80;
-                    var outP = h - ValueToPos(max, min, graphH, outV) - 80;
-                    var minP = h - ValueToPos(max, min, graphH, minV) - 80;
-                    var maxP = h - ValueToPos(max, min, graphH, maxV) - 80;
+                    var inP = h - ValueToPos(max, min, graphH, candle.inV) - 80;
+                    var outP = h - ValueToPos(max, min, graphH, candle.outV) - 80;
+                    var minP = h - ValueToPos(max, min, graphH, candle.minV) - 80;
+                    var maxP = h - ValueToPos(max, min, graphH, candle.maxV) - 80;
 
                     int cX = (int)(xPad + (n + 0.5F) * partW);
 
                     var candleH = (int)(outP - inP);
-                    /*                    if (candleH >= 0 && candleH < 1) candleH = 1;
-                                        if (candleH < 0 && candleH > -1) candleH = -1;*/
-                    string fractalStage = "S";
-                    int percent = 0;
                     SolidBrush c = FillColor;
-                    if (inV > outV)
-                    {
-                        c = AntiFillColor;  //  рост или падение
-                        fractalStage = "D";
-                        percent = (int)(-10000 + inV / outV * 10000);
-                    }
-                    else if (outV > inV)
-                    {
-                        fractalStage = "U";
-                        percent = (int)(-10000 + outV / inV * 10000);
-                    }
-                    fractalStage += percent.ToString("00 ");
-
-                    fractalCode += fractalStage;
 
                     if (candleH < 0)
                     {
                         inP = outP;
                         candleH = -candleH;
+                        c = AntiFillColor;
                     }
 
                     if (maxP < minP)
@@ -399,15 +325,7 @@ namespace BinanceCore.Services
                     g.FillRectangle(c, rect);
                     var rect2 = new Rectangle((int)(cX - 1), (int)(minP), (int)(1), (int)(maxP - minP));
                     g.FillRectangle(c, rect2);
-
-                    ++n;
-                    pos += stepLen;
-                    pos2 += stepLen;
-                    priceAtPos = outV;
-
                 }
-                Console.WriteLine("Now fractal is " + fractalCode);
-                return fractalCode;
             }
         }
 

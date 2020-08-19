@@ -7,7 +7,7 @@ namespace BinanceCore.Services
 {
     public class FractalMath
     {
-        public static List<Tuple<int, FractalDefinition>> FindFractal(FractalDefinition config, string historyCode)
+        public static List<Tuple<int, FractalDefinition>> FindFractal(FractalDefinition config, string historyCode, IEnumerable<Candle> candles)
         {
             var symbolsAtStages = new List<Tuple<int, FractalDefinition>>();
             var graphParts = historyCode.Split(new char[] { ' ' });
@@ -18,6 +18,7 @@ namespace BinanceCore.Services
                 for (int p = 0; p < fractalParts.Length && fits; p++)
                 {
                     var must = fractalParts[p].Trim().GoodPoint();
+                    if (must.Contains("§")) must = must.Split(new char[] { '§' }, StringSplitOptions.RemoveEmptyEntries)[0];
                     var mustParts = must.Split(new char[] { '-' });
                     double mustMin = double.Parse(mustParts[1]);
                     double mustMax = double.Parse(mustParts[2]);
