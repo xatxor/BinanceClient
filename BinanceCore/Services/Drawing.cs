@@ -305,13 +305,13 @@ namespace BinanceCore.Services
                     int cX = (int)(xPad + (n + 0.5F) * partW);
 
                     var candleH = (int)(outP - inP);
-                    SolidBrush c = FillColor;
+                    SolidBrush c = AntiFillColor;
 
                     if (candleH < 0)
                     {
                         inP = outP;
                         candleH = -candleH;
-                        c = AntiFillColor;
+                        c = FillColor;
                     }
 
                     if (maxP < minP)
